@@ -16,7 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class QRPaymentController extends Controller
 {
@@ -260,25 +259,44 @@ class QRPaymentController extends Controller
      */
     public function queryStatus(Booking $booking)
     {
+        Log::info('🔍 Consultando estado de pago QR', [
+            'booking_id' => $booking->id,
+            'customer_id' => auth('customer')->id(),
+        ]);
+
         if ($booking->customer_id !== auth('customer')->id()) {
+            Log::error('❌ Cliente no autorizado', [
+                'booking_customer_id' => $booking->customer_id,
+                'auth_customer_id' => auth('customer')->id(),
+            ]);
             abort(403);
         }
 
         $payment = $booking->payments()->where('payment_method', PaymentMethod::QR_CODE)->first();
 
-        if (!$payment || !$payment->qr_transaction_id) {
-            return response()->json(['error' => 'No QR transaction found'], 404);
+        if (!$payment) {
+            Log::warning('⚠️ No se encontró pago QR', [
+                'booking_id' => $booking->id,
+            ]);
+            return response()->json([
+                'error' => 'No QR transaction found',
+                'payment_status' => 'pending'
+            ], 404);
         }
 
-        $status = $this->masterQRService->queryTransaction($payment->qr_transaction_id);
+        Log::info('✅ Estado del pago', [
+            'payment_id' => $payment->id,
+            'status' => $payment->status->value,
+            'has_transaction_id' => !empty($payment->qr_transaction_id),
+        ]);
 
-        if (!$status) {
-            return response()->json(['error' => 'Could not query transaction status'], 500);
-        }
-
+        // Solo devolver el estado actual del pago en nuestra base de datos
+        // El callback de MasterQR actualizará este estado cuando el pago se complete
         return response()->json([
-            'status' => $status,
             'payment_status' => $payment->status->value,
+            'booking_status' => $booking->status->value,
+            'payment_id' => $payment->id,
+            'transaction_id' => $payment->qr_transaction_id,
         ]);
     }
 
