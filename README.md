@@ -46,7 +46,6 @@ Open at `http://127.0.0.1:8000`
 For demo purposes, you can use the following accounts:
 
 **Admin Account**
-- Url: https://homa.infinityfree.me/admin
 - Email: test@example.com  
 - Password: 1234  
 
@@ -54,6 +53,5 @@ For demo purposes, you can use the following accounts:
 - Email: any  
 - Password: password
 
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+
 
