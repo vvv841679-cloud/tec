@@ -1,7 +1,7 @@
 <template>
-    <section id="booking" class="booking h-fullscreen">
-        <div class="d-flex justify-content-center mt-6 h-full">
-            <div class="booking-form-section" style="width: 600px">
+    <section id="booking" class="booking section">
+        <div class="container d-flex justify-content-center mt-5 mb-5">
+            <div class="booking-form-section" style="width: 600px; max-width: 100%;">
                 <div class="form-container w-full">
                     <form class="reservation-form" @submit.prevent="submitLogin" method="POST">
                         <div class="form-section mb-3">

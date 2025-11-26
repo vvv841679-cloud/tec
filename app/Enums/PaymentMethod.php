@@ -18,4 +18,7 @@ enum PaymentMethod: string
 
     #[Display('Online', 'bg-warning-lt')]
     case ONLINE = 'online';
+
+    #[Display('QR Code', 'bg-primary-lt')]
+    case QR_CODE = 'qr_code';
 }

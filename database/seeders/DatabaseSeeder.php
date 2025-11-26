@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Rasoul',
             'last_name' => 'Zinati',
             'email' => 'test@example.com',
-            'password' => bcrypt('1234'),
+            'password' => '1234',
             'sex' => Sex::Male,
             'is_super_admin' => true,
         ]);

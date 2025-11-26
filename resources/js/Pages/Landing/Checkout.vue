@@ -152,11 +152,19 @@
                                     </div>
                                 </div>
 
-                                <div class="form-actions">
+                                <div class="form-actions d-flex gap-3">
                                     <button type="submit" class="btn btn-primary" :disabled="processing">
                                         <i class="bi bi-wallet2 me-2"></i>
-                                        Pagar Reserva
+                                        Pagar con Tarjeta
                                     </button>
+
+                                    <Link
+                                        :href="route('bookings.qr.checkout', { booking: booking.id })"
+                                        class="btn btn-success"
+                                        :disabled="processing">
+                                        <i class="bi bi-qr-code me-2"></i>
+                                        Pagar con QR
+                                    </Link>
                                 </div>
                             </form>
                         </div>

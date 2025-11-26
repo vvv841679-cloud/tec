@@ -60,4 +60,21 @@ trait BaseEnum
 
         return $defaultValue->first() ?? self::cases()[0];
     }
+
+    public function label(): string
+    {
+        $display = static::getDisplay($this);
+
+        if (!$display) {
+            // Fallback: convert enum name to readable format
+            return ucwords(str_replace('_', ' ', strtolower($this->name)));
+        }
+
+        // getDisplay returns array cast from Display object
+        if (is_array($display)) {
+            return $display['label'] ?? ucwords(str_replace('_', ' ', strtolower($this->name)));
+        }
+
+        return property_exists($display, 'label') ? $display->label : ucwords(str_replace('_', ' ', strtolower($this->name)));
+    }
 }

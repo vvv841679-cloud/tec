@@ -1,0 +1,89 @@
+{
+  "tablas": {
+    "countries": "paises",
+    "bed_types": "tipos_cama",
+    "facilities": "servicios",
+    "media": "medios",
+    "room_types": "tipos_habitacion",
+    "room_type_beds": "tipo_habitacion_camas",
+    "room_type_facility": "tipo_habitacion_servicio",
+    "rooms": "habitaciones",
+    "meal_plans": "planes_alimentacion",
+    "cancellation_rules": "reglas_cancelacion",
+    "customers": "clientes",
+    "customer_verifications": "verificaciones_cliente",
+    "customer_password_resets": "reseteos_contrasena_cliente",
+    "bookings": "reservas",
+    "booking_rooms": "reserva_habitaciones",
+    "booking_statuses": "estados_reserva",
+    "booking_charges": "cargos_reserva",
+    "booking_childrens": "ninos_reserva",
+    "payments": "pagos"
+  },
+  "columnas_comunes": {
+    "id": "id",
+    "created_at": "creado_en",
+    "updated_at": "actualizado_en",
+    "deleted_at": "eliminado_en",
+    "name": "nombre",
+    "email": "correo",
+    "password": "contrasena",
+    "remember_token": "token_recordar",
+    "email_verified_at": "correo_verificado_en",
+    "first_name": "primer_nombre",
+    "last_name": "apellido",
+    "phone": "telefono",
+    "phone_number": "numero_telefono",
+    "address": "direccion",
+    "city": "ciudad",
+    "state": "estado",
+    "zip_code": "codigo_postal",
+    "country": "pais",
+    "country_id": "pais_id",
+    "status": "estado",
+    "type": "tipo",
+    "description": "descripcion",
+    "price": "precio",
+    "total_price": "precio_total",
+    "amount": "monto",
+    "check_in": "entrada",
+    "check_out": "salida",
+    "adults": "adultos",
+    "children": "ninos",
+    "notes": "notas",
+    "reference": "referencia"
+  },
+  "enums": {
+    "PaymentMethod": {
+      "credit_card": "tarjeta_credito",
+      "cash": "efectivo",
+      "bank_transfer": "transferencia_bancaria",
+      "online": "en_linea",
+      "qr_code": "codigo_qr"
+    },
+    "PaymentStatus": {
+      "pending": "pendiente",
+      "paid": "pagado",
+      "failed": "fallido",
+      "refunded": "reembolsado"
+    },
+    "PaymentType": {
+      "deposit": "deposito",
+      "full": "completo",
+      "partial": "parcial"
+    },
+    "BookingStatus": {
+      "pending": "pendiente",
+      "confirmed": "confirmado",
+      "reserved": "reservado",
+      "checked_in": "registrado",
+      "checked_out": "salida",
+      "cancelled": "cancelado"
+    },
+    "BookingPayment": {
+      "unpaid": "sin_pagar",
+      "paid": "pagado",
+      "partially_paid": "parcialmente_pagado"
+    }
+  }
+}

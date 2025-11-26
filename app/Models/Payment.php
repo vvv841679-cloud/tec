@@ -19,6 +19,10 @@ class Payment extends Model
         'reference',
         'note',
         'paid_at',
+        'qr_image_url',
+        'qr_transaction_id',
+        'payment_number',
+        'qr_response',
     ];
 
 
@@ -28,6 +32,7 @@ class Payment extends Model
         'type' => PaymentType::class,
         'payment_method' => PaymentMethod::class,
         'status' => PaymentStatus::class,
+        'qr_response' => 'array',
     ];
 
     public function booking(): BelongsTo

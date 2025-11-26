@@ -11,6 +11,7 @@ use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Landing\BookingController;
 use App\Http\Controllers\Landing\LandingController;
 use App\Http\Controllers\Landing\PaymentController;
+use App\Http\Controllers\Landing\QRPaymentController;
 use App\Http\Controllers\Landing\RoomTypeController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,9 @@ Route::get('/rooms', [RoomTypeController::class, 'index'])->name('roomTypes.inde
 Route::get('/rooms/{roomType:slug}', [RoomTypeController::class, 'show'])->name('roomTypes.show');
 Route::get('/login', [AuthenticateController::class, 'loginForm'])->name('loginForm');
 Route::post('/login', [AuthenticateController::class, 'store'])->name('login');
+
+// Webhook público para MasterQR (sin autenticación)
+Route::post('/qr/callback', [QRPaymentController::class, 'callback'])->name('qr.callback');
 
 Route::get('/register', [RegisterController::class, 'registerForm'])->name('registerForm');
 Route::post('/register', [RegisterController::class, 'store'])->name('register');
@@ -50,6 +54,11 @@ Route::middleware(['auth:customer', 'verified.customer'])->withoutMiddleware('au
     Route::post('payments/confirm', [PaymentController::class, 'confirmPayment'])->name('payments.confirm');
     Route::get('bookings/{booking}/success', [PaymentController::class, 'success'])->name('bookings.success');
     Route::get('bookings/{booking}/failed', [PaymentController::class, 'failed'])->name('bookings.failed');
+
+    // Rutas para pagos con QR
+    Route::get('bookings/{booking}/qr-checkout', [QRPaymentController::class, 'checkout'])->name('bookings.qr.checkout');
+    Route::post('bookings/{booking}/qr/generate', [QRPaymentController::class, 'generateQR'])->name('bookings.qr.generate');
+    Route::get('bookings/{booking}/qr/status', [QRPaymentController::class, 'queryStatus'])->name('bookings.qr.status');
 
     Route::prefix('/customer')->name('customer.')->group(function() {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');

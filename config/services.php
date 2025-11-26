@@ -41,4 +41,13 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
+    'masterqr' => [
+        'base_url' => env('MASTERQR_BASE_URL', 'https://masterqr.pagofacil.com.bo/api/services/v2'),
+        'token_service' => env('MASTERQR_TOKEN_SERVICE'),
+        'token_secret' => env('MASTERQR_TOKEN_SECRET'),
+        'client_code' => env('MASTERQR_CLIENT_CODE'),
+        'callback_url' => env('MASTERQR_CALLBACK_URL'),
+        'test_amount' => env('MASTERQR_TEST_AMOUNT', 0.10), // Monto fijo para demos
+    ],
+
 ];
