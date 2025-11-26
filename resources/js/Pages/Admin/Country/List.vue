@@ -1,0 +1,158 @@
+<template>
+    <Head title="countries" />
+    <div class="row g-2 align-items-center mb-4">
+        <div class="col">
+            <h2 class="page-title">Países</h2>
+        </div>
+        <!-- Page title actions -->
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+
+                <button class="btn btn-primary btn-5 d-none d-sm-inline-block"
+                        v-if="access.createCountry"
+                        @click="openModal = !openModal">
+                    <IconPlus class="icon icon-2"/>
+                    Nuevo Registro
+                </button>
+            </div>
+            <!-- BEGIN MODAL -->
+            <!-- END MODAL -->
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-table">
+            <div class="card-header">
+                <div class="row w-full">
+                    <div class="col">
+                        <h3 class="card-title mb-0">Países</h3>
+                        <p class="text-secondary m-0">Lista de Países.</p>
+                    </div>
+                    <div class="col-md-auto col-sm-12">
+                        <div class="ms-auto d-flex flex-wrap btn-list">
+                            <div class="input-group input-group-flat w-auto">
+                              <span class="input-group-text">
+                                  <IconSearch class="icon icon-1"/>
+                              </span>
+                                <input id="advanced-table-search" type="text"
+                                       class="form-control" autocomplete="off" v-model="filters.search">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-selectable card-table table-vcenter text-nowrap datatable">
+                    <thead>
+                    <tr>
+                        <th class="w-1"></th>
+                        <sort-head name="name" v-model="sorts" label="Nombre" />
+                        <sort-head name="short" v-model="sorts" label="Abreviatura" />
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody class="table-tbody">
+                    <tr v-for="country in countries.data" :key="country.id">
+                        <td>
+                            <input class="form-check-input m-0 align-middle table-selectable-check" type="checkbox"
+                                   aria-label="Select invoice" value="true">
+                        </td>
+                        <td class="sort-full_name">{{ country.name }}</td>
+                        <td class="sort-gender">{{ country.short }}</td>
+                        <td class="text-end">
+                            <div class="dropdown" v-if="Object.values(country.access).some(per => per)">
+                                <button class="btn dropdown-toggle align-text-top" data-bs-boundary="viewport"
+                                        data-bs-toggle="dropdown" aria-expanded="true">
+                                    Acciones
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end" data-popper-placement="bottom-end">
+                                    <button class="dropdown-item align-middle"
+                                            @click="openEditModal(country)"
+                                            v-if="country.access.edit">
+                                        <IconEdit class="icon icon1"/>
+                                        Editar
+                                    </button>
+                                    <button class="dropdown-item" v-if="country.access.delete"
+                                            @click="() => confirmDelete(route('admin.countries.destroy', country.id))">
+                                        <IconTrash class="icon icon1"/>
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer d-flex align-items-center">
+                <select class="form-select w-auto" v-model="limit" @change="syncFilters">
+                    <option value="15" selected>15 registros</option>
+                    <option value="25">25 registros</option>
+                    <option value="50">50 registros</option>
+                    <option value="100">100 registros</option>
+                </select>
+                <Pagination :links="countries.meta.links"/>
+            </div>
+        </div>
+    </div>
+    <Create v-if="openModal && !editingCountry"/>
+    <Update v-if="openModal && editingCountry" :country="editingCountry"/>
+</template>
+
+<script setup>
+import {provide, ref, toRaw, watch} from "vue";
+import {debounce} from "@tabler/core/dist/libs/list.js/src/utils/events.js";
+import {router} from "@inertiajs/vue3";
+import Pagination from "../../../Shared/Admin/Pagination.vue";
+import Create from "./Create.vue";
+import {IconEdit, IconTrash, IconPlus, IconSearch} from '@tabler/icons-vue';
+import Update from "./Update.vue";
+import {useConfirm} from "../../../Composables/useConfirm.js";
+import SortHead from "../../../Components/SortHead.vue";
+
+const confirmDelete = useConfirm();
+
+const props = defineProps({
+    'countries': Object,
+    'filters': Object,
+    'sorts': String,
+    'limit': Number,
+    'access': Object,
+});
+
+let editingCountry = ref(null);
+let openModal = ref(false);
+const filters = ref(props.filters);
+const sorts = ref(props.sorts);
+const limit = ref(props.limit)
+
+provide("closeModal", () => {
+    openModal.value = false
+    if(editingCountry) editingCountry.value = null
+});
+
+const openEditModal = (country) => {
+    editingCountry.value = country;
+    openModal.value = true
+}
+
+watch(filters, debounce(() => {
+    syncFilters()
+}, 300), {
+    deep: true
+})
+
+watch(sorts, () => syncFilters());
+
+const syncFilters = () => {
+    router.get(route('admin.countries.index'), {
+        sorts: sorts.value,
+        limit: limit.value,
+        filters: toRaw(filters.value)
+    }, {
+        preserveState: true,
+        replace: true
+    })
+}
+
+</script>

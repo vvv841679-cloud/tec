@@ -1,0 +1,36 @@
+<template>
+    <label v-if="label"
+           :class="{'required': $attrs.hasOwnProperty('required')}"
+           class="form-label">
+        {{ label }}
+    </label>
+    <input
+        v-bind="$attrs"
+        :type="type"
+        class="form-control"
+        :class="{ 'is-invalid': error }"
+        :placeholder="placeholder"
+        :autocomplete="autocomplete"
+        :value="modelValue"
+        @input="$emit('update:modelValue', $event.target.value)"
+    />
+    <div class="invalid-feedback" v-if="error">
+        {{ error }}
+    </div>
+</template>
+
+<script setup>
+defineProps({
+    label: String,
+    type: {
+        type: String,
+        default: 'text'
+    },
+    placeholder: String,
+    autocomplete: String,
+    modelValue: [Number, String],
+    error: String
+})
+
+defineEmits(['update:modelValue'])
+</script>

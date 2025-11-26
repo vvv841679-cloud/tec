@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Resources;
+
+use App\Models\MealPlan;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class MealPlanResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        /** @var $this MealPlan|MealPlanResource */
+        return [
+            'id' => $this->id,
+            'code' => $this->code,
+            'name' => $this->name,
+            'description' => $this->description,
+            'adult_price' => $this->adult_price,
+            'child_price' => $this->child_price,
+            'infant_price' => $this->infant_price,
+            'access' => $this->whenNotNull($this->access),
+        ];
+    }
+}

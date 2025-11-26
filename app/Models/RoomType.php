@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\RoomTypeStatus;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
+class RoomType extends Model implements HasMedia
+{
+    use HasFactory, InteractsWithMedia;
+
+    protected $casts = [
+        'price' => 'integer',
+        'extra_bed_price' => 'integer',
+        'status' => RoomTypeStatus::class,
+    ];
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'view',
+        'description',
+        'size',
+        'max_adult',
+        'max_children',
+        'max_total_guests',
+        'price',
+        'extra_bed_price',
+        'status'
+    ];
+
+    public function bedTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(BedType::class, 'room_type_beds')->withPivot('quantity');
+    }
+
+    public function facilities(): BelongsToMany
+    {
+        return $this->belongsToMany(Facility::class, 'room_type_facility');
+    }
+
+    public function rooms(): HasMany
+    {
+        return $this->hasMany(Room::class);
+    }
+
+    public function scopeActive(Builder $builder): void
+    {
+        $builder->where('status', RoomTypeStatus::Active);
+    }
+
+    public function scopeCapacity($query, $adults, $children)
+    {
+         $query->where('max_adult', '>=', $adults)
+            ->where('max_children', '>=', $children);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this
+            ->addMediaCollection('main')
+            ->useFallbackUrl(url('/assets/images/default-room.webp'));
+
+        $this
+            ->addMediaCollection('gallery')
+            ->useFallbackUrl(url('/assets/images/default-room.webp'));
+    }
+
+    public function registerMediaConversions(Media|null $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->performOnCollections('main')
+            ->width(368)
+            ->height(232)
+            ->nonQueued();
+
+        $this->addMediaConversion('set')
+            ->performOnCollections('gallery')
+            ->width(368)
+            ->height(232)
+            ->nonQueued();
+    }
+}

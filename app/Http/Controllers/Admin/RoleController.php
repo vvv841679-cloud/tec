@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\RoleResource;
+use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
+
+class RoleController extends Controller
+{
+    public function __construct()
+    {
+        $this->authorizeResource(Role::class, 'role');
+    }
+
+    public function index()
+    {
+        $user = auth()->user();
+        $roles = Role::all()
+                    ->map(fn ($role) => $role->setAttribute('access', [
+                        'edit' => $user->can('update', $role),
+                        'delete' => $user->can('delete', $role),
+                        'permissions' => $user->can('permissions', $role),
+                    ]));
+
+        return inertia('Admin/Role/List', [
+            'roles' => RoleResource::collection($roles),
+            'access' => [
+                'createRole' => auth()->user()->can('create', Role::class),
+            ]
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+       $data = $request->validate([
+           'name' => 'required|unique:roles,name',
+       ]);
+
+       Role::create($data);
+
+        return redirect()->back()->with('message', 'Role created.');
+    }
+
+
+    public function update(Request $request, Role $role)
+    {
+        $data = $request->validate([
+            'name' => 'required|unique:roles,name,' . $role->id,
+        ]);
+
+        $role->update($data);
+
+        return redirect()->back()->with('message', 'Role updated.');
+    }
+
+
+    public function destroy(Role $role)
+    {
+        $role->delete();
+        return redirect()->back()->with('message', 'Role deleted.');
+    }
+}
