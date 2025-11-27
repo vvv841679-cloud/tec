@@ -37,7 +37,7 @@ class MealPlanController extends Controller
 
         MealPlan::create($data);
 
-        return redirect()->back()->with('message', 'Meal plan created.');
+        return redirect()->back()->with('message', 'Plan de comidas creado.');
     }
 
     public function update(EditRequest $request, MealPlan $mealPlan)
@@ -46,14 +46,13 @@ class MealPlanController extends Controller
 
         $mealPlan->update($data);
 
-        return redirect()->back()->with('message', 'Meal plan updated.');
+        return redirect()->back()->with('message', 'Plan de comidas actualizado.');
     }
-
 
     public function destroy(MealPlan $mealPlan)
     {
         $mealPlan->delete();
 
-        return redirect()->back()->with('message', 'Meal plan deleted.');
+        return redirect()->back()->with('message', 'Plan de comidas eliminado.');
     }
 }

@@ -32,6 +32,6 @@ class ProfileController extends Controller
         $customer->update(except_keys($data, 'avatar'));
         UploadFiles::handle($customer, $data['avatar'], 'avatar');
 
-        return redirect()->back()->with('message', 'Profile updated successfully.');
+        return redirect()->back()->with('message', 'Perfil actualizado con éxito.');
     }
 }

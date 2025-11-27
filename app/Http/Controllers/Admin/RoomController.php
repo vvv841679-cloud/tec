@@ -24,7 +24,6 @@ class RoomController extends Controller
         $this->authorizeResource(Room::class, 'room');
     }
 
-
     public function index(Request $request)
     {
         $limit = $request->limit;
@@ -75,9 +74,8 @@ class RoomController extends Controller
 
         Room::create($data);
 
-        return redirect()->back()->with('message', 'Room created.');
+        return redirect()->back()->with('message', 'Habitación creada.');
     }
-
 
     public function update(EditRequest $request, Room $room)
     {
@@ -85,7 +83,7 @@ class RoomController extends Controller
 
         $room->update($data);
 
-        return redirect()->back()->with('message', 'Room updated.');
+        return redirect()->back()->with('message', 'Habitación actualizada.');
     }
 
     /**
@@ -95,6 +93,6 @@ class RoomController extends Controller
     {
         $room->delete();
 
-        return redirect()->back()->with('message', 'Room deleted.');
+        return redirect()->back()->with('message', 'Habitación eliminada.');
     }
 }

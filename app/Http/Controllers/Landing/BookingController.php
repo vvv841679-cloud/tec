@@ -50,8 +50,11 @@ class BookingController extends Controller
 
         $booking = $bookingService->create($data);
 
+        $depositAmount = $booking->total_price * 0.30;
+        $booking->update(['deposit_amount' => $depositAmount]);
+
         $booking->payments()->create([
-            'amount' => $booking->total_price,
+            'amount' => $depositAmount,
             'type' => PaymentType::DEPOSIT,
             'payment_method' => PaymentMethod::ONLINE,
         ]);

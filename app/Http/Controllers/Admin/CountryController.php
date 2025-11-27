@@ -55,7 +55,7 @@ class CountryController extends Controller
 
         Country::create($data);
 
-        return redirect()->back()->with('message', 'Country created.');
+        return redirect()->back()->with('message', 'País creado.');
     }
 
     public function update(EditRequest $request, Country $country)
@@ -64,14 +64,13 @@ class CountryController extends Controller
 
         $country->update($data);
 
-        return redirect()->back()->with('message', 'Country updated.');
+        return redirect()->back()->with('message', 'País actualizado.');
     }
-
 
     public function destroy(Country $country)
     {
         $country->delete();
 
-        return redirect()->back()->with('message', 'Country deleted.');
+        return redirect()->back()->with('message', 'País eliminado.');
     }
 }

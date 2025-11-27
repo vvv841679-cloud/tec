@@ -37,7 +37,7 @@ class BedTypeController extends Controller
 
         BedType::create($data);
 
-        return redirect()->back()->with('message', 'Bed Type created.');
+        return redirect()->back()->with('message', 'Tipo de cama creado.');
     }
 
     public function update(EditRequest $request, BedType $bedType)
@@ -46,14 +46,13 @@ class BedTypeController extends Controller
 
         $bedType->update($data);
 
-        return redirect()->back()->with('message', 'Bed Type updated.');
+        return redirect()->back()->with('message', 'Tipo de cama actualizado.');
     }
-
 
     public function destroy(BedType $bedType)
     {
         $bedType->delete();
 
-        return redirect()->back()->with('message', 'Bed Type deleted.');
+        return redirect()->back()->with('message', 'Tipo de cama eliminado.');
     }
 }

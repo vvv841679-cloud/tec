@@ -113,6 +113,15 @@ class   Booking extends Model
         return $this->payment_status === BookingPayment::PAID;
     }
 
+    public function hasPaidMinimumPercentage(float $percentage): bool
+    {
+        $totalPaid = $this->payments()
+            ->where('status', \App\Enums\PaymentStatus::PAID)
+            ->sum('amount');
+
+        return $totalPaid >= ($this->total_price * $percentage);
+    }
+
     public function daysUntilCheckIn(): int
     {
         return (int) now()->startOfDay()->diffInDays($this->check_in->startOfDay());

@@ -60,6 +60,20 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        // Revenue Chart Data (Last 30 days)
+        $revenue_chart_data = Payment::selectRaw('DATE(paid_at) as date, SUM(amount) as total')
+            ->where('paid_at', '>=', now()->subDays(30))
+            ->paid()
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'x' => $item->date,
+                    'y' => $item->total,
+                ];
+            });
+
         return inertia('Admin/Dashboard', [
             'today_checkins'   => $today_checkins,
             'today_checkouts'  => $today_checkouts,
@@ -68,6 +82,7 @@ class DashboardController extends Controller
             'room_status'      => $room_status,
             'revenue'          => $revenue,
             'latest_bookings'  => BookingResource::collection($latest_bookings),
+            'revenue_chart_data' => $revenue_chart_data,
             'statuses' => BookingStatus::asSelect(),
         ]);
     }

@@ -29,7 +29,7 @@
                     <div class="row g-3">
                         <div class="col-4" v-for="model in Object.keys(groupedPermissions)">
                             <div class="card bg-primary-lt h-full">
-                                <div class="card-header">
+                                <div class="card-header">   
                                     <label class="form-check m-0">
                                         <input class="form-check-input" type="checkbox"
                                                @change="toggleAllPermsForModel(model, $event)"
