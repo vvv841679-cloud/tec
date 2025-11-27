@@ -4,6 +4,7 @@ use App\Http\Middleware\CustomerIsVerified;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\IsAuthorize;
 use App\Http\Middleware\PaginationValidation;
+use App\Http\Middleware\TrackPageViews;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Providers\AuthProvider;
 use App\Providers\DatabaseSessionProvider;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
             VerifyCsrfToken::class,
+            TrackPageViews::class,
         ]);
 
         $middleware->alias([

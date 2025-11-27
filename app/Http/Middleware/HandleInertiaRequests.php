@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Http\Resources\CustomerResource;
 use App\Http\Resources\UserResource;
 use App\Models\Menu;
+use App\Models\PageView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Middleware;
@@ -65,6 +66,7 @@ class HandleInertiaRequests extends Middleware
                 'type' => fn() => $request->session()->get('type') ?? 'success'
             ],
             'old' => fn() => $request->session()->get('old'),
+            'pageViews' => fn() => PageView::getVisitCount($request->path()),
         ];
     }
 }

@@ -65,7 +65,11 @@
             <div class="container d-flex flex-column flex-lg-row justify-content-center justify-content-lg-between align-items-center">
 
                 <div class="d-flex flex-column align-items-center align-items-lg-start">
-
+                    <div class="mb-2">
+                        <span class="text-white">
+                            <i class="bi bi-eye"></i> Visitas a esta página: <strong>{{ $page.props.pageViews }}</strong>
+                        </span>
+                    </div>
                     <div class="credits">
                         <!-- All the links in the footer should remain intact. -->
                         <!-- You can delete the links only if you purchased the pro version. -->

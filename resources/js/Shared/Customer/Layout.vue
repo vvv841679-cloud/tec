@@ -11,10 +11,12 @@
     <main class="main">
         <slot/>
     </main>
+    <Footer />
 </template>
 
 <script setup>
 import Header from "./Header.vue";
+import Footer from "../Landing/footer.vue";
 import "../../../css/bootstrap.min.css"
 import "../../../css/landing.css"
 import "../../../css/bootstrap-icons.css"

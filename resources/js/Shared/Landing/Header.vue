@@ -12,8 +12,19 @@
                     </h1>
                 </Link>
 
+                <!-- Buscador -->
+                <div class="search-wrapper d-none d-lg-block">
+                    <SearchBar />
+                </div>
+
                 <nav id="navmenu" class="navmenu">
                     <ul>
+                        <li class="d-lg-none">
+                            <Link :href="route('search.index')" :class="{'active': $page.url === route('search.index', {}, false)}">
+                                <i class="bi bi-search me-2 fs-6"></i>
+                                Buscar
+                            </Link>
+                        </li>
                         <li><Link :href="route('home')" :class="{'active': $page.url === '/'}">Inicio</Link></li>
                         <li><Link :href="route('roomTypes.index')" :class="{'active': $page.url === route('roomTypes.index')}">Habitaciones</Link></li>
 
@@ -59,6 +70,7 @@
 <script setup>
 import {router, usePage} from "@inertiajs/vue3";
 import {getMediaUrl} from "../../Utils/helper.js";
+import SearchBar from "../Customer/SearchBar.vue";
 
 const {props: {auth: {customer}}} = usePage();
 

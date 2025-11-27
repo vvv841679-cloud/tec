@@ -8,6 +8,7 @@ use App\Http\Controllers\Customer\Auth\VerifyCodeController;
 use App\Http\Controllers\Customer\DashboardController;
 use App\Http\Controllers\Customer\PasswordController;
 use App\Http\Controllers\Customer\ProfileController;
+use App\Http\Controllers\Customer\SearchController;
 use App\Http\Controllers\Landing\BookingController;
 use App\Http\Controllers\Landing\LandingController;
 use App\Http\Controllers\Landing\PaymentController;
@@ -18,6 +19,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', LandingController::class)->middleware('verified.customer')->name('home');
 Route::get('/rooms', [RoomTypeController::class, 'index'])->name('roomTypes.index');
 Route::get('/rooms/{roomType:slug}', [RoomTypeController::class, 'show'])->name('roomTypes.show');
+
+// Rutas públicas de búsqueda
+Route::get('/search', [SearchController::class, 'publicIndex'])->name('search.index');
+Route::get('/search/api', [SearchController::class, 'publicSearch'])->name('search.api');
 Route::get('/login', [AuthenticateController::class, 'loginForm'])->name('loginForm');
 Route::post('/login', [AuthenticateController::class, 'store'])->name('login');
 
@@ -71,6 +76,9 @@ Route::middleware(['auth:customer', 'verified.customer'])->withoutMiddleware('au
 
         Route::get('/password', [PasswordController::class, 'edit'])->name('password.edit');
         Route::post('/password', [PasswordController::class, 'update'])->name('password.save');
+
+        Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+        Route::get('/search/api', [SearchController::class, 'search'])->name('search.api');
     });
 });
 

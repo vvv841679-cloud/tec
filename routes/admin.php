@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\RoomTypeController;
+use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::delete('/logout', [AuthenticateController::class, 'delete'])->name('logout');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    // Search routes
+    Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+    Route::get('/search/api', [SearchController::class, 'search'])->name('search.api');
 
     Route::apiResource('/users', UserController::class)->except('show')
         ->middlewareFor('index', 'pagination.validation');

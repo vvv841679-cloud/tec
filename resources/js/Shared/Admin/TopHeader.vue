@@ -21,6 +21,11 @@
                     class="bold h4">Hotel  LA PASCANA</span>
                 </Link>
             </div>
+            <!-- BEGIN SEARCH BAR -->
+            <div class="d-none d-md-flex flex-fill justify-content-center px-3">
+                <SearchBar />
+            </div>
+            <!-- END SEARCH BAR -->
             <Settings />
         </div>
     </header>
@@ -29,4 +34,5 @@
 <script setup>
 
 import Settings from "./Settings.vue";
+import SearchBar from "./SearchBar.vue";
 </script>

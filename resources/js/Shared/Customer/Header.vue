@@ -11,8 +11,21 @@
                     </h1>
                 </Link>
 
+                <!-- Buscador -->
+                <div class="search-wrapper d-none d-lg-block">
+                    <SearchBar />
+                </div>
+
                 <nav id="navmenu" class="navmenu">
                     <ul>
+                        <li class="d-lg-none">
+                            <Link
+                                :href="route('customer.search.index')"
+                                :class="{'active': $page.url === route('customer.search.index', {}, false)}">
+                                <i class="bi bi-search me-2 fs-6"></i>
+                                Buscar
+                            </Link>
+                        </li>
                         <li>
                             <Link
                                 :href="route('customer.dashboard')"
@@ -83,6 +96,7 @@
 <script setup>
 import {router, usePage} from "@inertiajs/vue3";
 import {getMediaUrl} from "../../Utils/helper.js";
+import SearchBar from "./SearchBar.vue";
 
 const {props: {auth: {customer}}} = usePage();
 
