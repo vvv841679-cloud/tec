@@ -6,6 +6,22 @@
     RewriteEngine On
     RewriteBase /inf513/grupo21sc/proyecto2/tec/public/
 
+    # Set correct MIME types for JavaScript modules
+    <IfModule mod_mime.c>
+        AddType application/javascript .js
+        AddType application/javascript .mjs
+        AddType text/css .css
+    </IfModule>
+
+    # Enable CORS for assets
+    <IfModule mod_headers.c>
+        <FilesMatch "\.(js|mjs|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$">
+            Header set Access-Control-Allow-Origin "*"
+            Header set Access-Control-Allow-Methods "GET, OPTIONS"
+            Header set Access-Control-Allow-Headers "Content-Type"
+        </FilesMatch>
+    </IfModule>
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
