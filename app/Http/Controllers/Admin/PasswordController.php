@@ -35,6 +35,6 @@ class PasswordController extends Controller
             route('admin.password.request')
         ));
 
-        return redirect()->back()->with('message', 'Password changed successfully.');
+        return redirect()->back()->with('message', 'Contraseña cambiada con éxito.');
     }
 }

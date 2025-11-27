@@ -70,11 +70,9 @@ class CustomerController extends Controller
         ]);
     }
 
-
     public function store(CreateRequest $request)
     {
         $data = $request->validated();
-
 
         $data = [
             ...$data,
@@ -85,9 +83,8 @@ class CustomerController extends Controller
 
         Customer::create($data);
 
-        return redirect()->back()->with('message', 'Customer created.');
+        return redirect()->back()->with('message', 'Cliente creado.');
     }
-
 
     public function update(EditRequest $request, Customer $customer)
     {
@@ -108,14 +105,13 @@ class CustomerController extends Controller
             }
         }
 
-        return redirect()->back()->with('message', 'Customer updated.');
+        return redirect()->back()->with('message', 'Cliente actualizado.');
     }
-
 
     public function destroy(Customer $customer)
     {
         $customer->delete();
 
-        return redirect()->back()->with('message', 'Customer deleted.');
+        return redirect()->back()->with('message', 'Cliente eliminado.');
     }
 }

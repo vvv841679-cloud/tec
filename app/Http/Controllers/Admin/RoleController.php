@@ -40,9 +40,8 @@ class RoleController extends Controller
 
        Role::create($data);
 
-        return redirect()->back()->with('message', 'Role created.');
+        return redirect()->back()->with('message', 'Rol creado.');
     }
-
 
     public function update(Request $request, Role $role)
     {
@@ -52,13 +51,12 @@ class RoleController extends Controller
 
         $role->update($data);
 
-        return redirect()->back()->with('message', 'Role updated.');
+        return redirect()->back()->with('message', 'Rol actualizado.');
     }
-
 
     public function destroy(Role $role)
     {
         $role->delete();
-        return redirect()->back()->with('message', 'Role deleted.');
+        return redirect()->back()->with('message', 'Rol eliminado.');
     }
 }

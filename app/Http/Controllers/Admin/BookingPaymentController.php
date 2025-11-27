@@ -56,9 +56,8 @@ class BookingPaymentController extends Controller
 
         DB::Transaction(fn () => $booking->payments()->create($data));
 
-        return redirect()->back()->with('message', 'Payment created.');
+        return redirect()->back()->with('message', 'Pago creado.');
     }
-
 
     /**
      * @throws Throwable
@@ -77,7 +76,6 @@ class BookingPaymentController extends Controller
 
         DB::Transaction(fn () => $payment->save());
 
-
-        return redirect()->back()->with('message', 'Payment updated.');
+        return redirect()->back()->with('message', 'Pago actualizado.');
     }
 }

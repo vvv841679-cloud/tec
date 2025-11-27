@@ -117,12 +117,12 @@ class RoomTypeController extends Controller
             $roomType->bedTypes()->sync($bedTypes);
         });
 
-        return redirect()->back()->with('message', 'Room type updated.');
+        return redirect()->back()->with('message', 'tipo de habitacion actualizada');
     }
 
     public function destroy(RoomType $roomType)
     {
         $roomType->delete();
-        return redirect()->back()->with('message', 'Room type deleted.');
+        return redirect()->back()->with('message', 'Tipo de Habitacion Eliminado');
     }
 }

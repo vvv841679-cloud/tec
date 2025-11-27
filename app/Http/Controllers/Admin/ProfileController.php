@@ -29,6 +29,6 @@ class ProfileController extends Controller
         $user->update(except_keys($data, 'avatar'));
         UploadFiles::handle($user, $data['avatar'], 'avatar');
 
-        return redirect()->back()->with('message', 'Profile updated successfully.');
+        return redirect()->back()->with('message', 'Perfil actualizado con éxito.');
     }
 }

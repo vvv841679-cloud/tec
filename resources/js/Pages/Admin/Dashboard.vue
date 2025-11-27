@@ -1,7 +1,7 @@
 <template>
     <Head title="dashboard"/>
     <div class=" g-2 align-items-center">
-        <div class="page-pretitle">Resumen</div>
+        <div class="page-pretitle">Resumen1</div>
         <h2 class="page-title">Panel de Control</h2>
     </div>
 
@@ -145,6 +145,20 @@
         </div>
     </div>
 
+    <!-- Revenue Chart -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Tendencia de Ingresos (Últimos 30 días)</h3>
+                </div>
+                <div class="card-body">
+                    <VueApexCharts type="area" height="350" :options="chartOptions" :series="series"></VueApexCharts>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Latest Bookings -->
     <div class="card mt-4">
@@ -190,8 +204,9 @@
 import {money_format} from "../../Utils/helper.js";
 import {useEnum} from "../../Composables/useEnum.js";
 import {IconDoorEnter, IconDoorExit, IconCreditCard, IconUser} from '@tabler/icons-vue'
+import VueApexCharts from "vue3-apexcharts";
 
-const {statuses} = defineProps(
+const props = defineProps(
     {
         'today_checkins': Number,
         'today_checkouts': Number,
@@ -200,9 +215,42 @@ const {statuses} = defineProps(
         'room_status': Number,
         'revenue': Number,
         'latest_bookings': Number,
+        'revenue_chart_data': Array,
         'statuses': Object
     }
 )
 
-const {display: displayStatus} = useEnum(statuses)
+const {display: displayStatus} = useEnum(props.statuses)
+
+const chartOptions = {
+    chart: {
+        id: 'revenue-chart',
+        type: 'area',
+        height: 350,
+        toolbar: {
+            show: false
+        }
+    },
+    dataLabels: {
+        enabled: false
+    },
+    stroke: {
+        curve: 'smooth'
+    },
+    xaxis: {
+        type: 'datetime',
+        categories: props.revenue_chart_data?.map(item => item.x) || []
+    },
+    tooltip: {
+        x: {
+            format: 'dd/MM/yy'
+        },
+    },
+    colors: ['#206bc4']
+}
+
+const series = [{
+    name: 'Ingresos',
+    data: props.revenue_chart_data?.map(item => item.y) || []
+}]
 </script>

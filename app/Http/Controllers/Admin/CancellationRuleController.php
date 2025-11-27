@@ -38,7 +38,7 @@ class CancellationRuleController extends Controller
 
         CancellationRule::create($data);
 
-        return redirect()->back()->with('message', 'Cancellation Rule created.');
+        return redirect()->back()->with('message', 'Regla de cancelación creada.');
     }
 
     public function update(EditRequest $request, CancellationRule $cancellationRule)
@@ -47,14 +47,13 @@ class CancellationRuleController extends Controller
 
         $cancellationRule->update($data);
 
-        return redirect()->back()->with('message', 'Cancellation Rule updated.');
+        return redirect()->back()->with('message', 'Regla de cancelación actualizada.');
     }
-
 
     public function destroy(CancellationRule $cancellationRule)
     {
         $cancellationRule->delete();
 
-        return redirect()->back()->with('message', 'Cancellation Rule deleted.');
+        return redirect()->back()->with('message', 'Regla de cancelación eliminada.');
     }
 }

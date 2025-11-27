@@ -1,26 +1,23 @@
 <template>
-    <Head title="list payments booking" />
+    <Head title="Lista de pagos de la reserva" />
     <div class="row g-2 align-items-center mb-4">
         <div class="col">
-            <h2 class="page-title">list payments booking  ({{booking.customer.full_name}})</h2>
+            <h2 class="page-title">Lista de pagos de la reserva ({{booking.customer.full_name}})</h2>
         </div>
-        <!-- Page title actions -->
         <div class="col-auto ms-auto d-print-none">
             <div class="btn-list">
                 <button v-if="access.createPayment"
                         class="btn btn-primary btn-5 d-none d-sm-inline-block"
                         @click="openModal = !openModal">
                     <IconPlus class="icon icon-2"/>
-                    New Record
+                    Nuevo Registro
                 </button>
                 <Link class="btn btn-1" :href="route('admin.bookings.index')">
                     <IconArrowLeft class="icon"/>
-                    Back
+                    Volver
                 </Link>
             </div>
-            <!-- BEGIN MODAL -->
-            <!-- END MODAL -->
-        </div>
+            </div>
     </div>
 
     <div class="card">
@@ -28,8 +25,8 @@
             <div class="card-header">
                 <div class="row w-full">
                     <div class="col">
-                        <h3 class="card-title mb-0">Payments</h3>
-                        <p class="text-secondary m-0">List Payments.</p>
+                        <h3 class="card-title mb-0">Pagos</h3>
+                        <p class="text-secondary m-0">Lista de Pagos.</p>
                     </div>
                 </div>
             </div>
@@ -39,15 +36,15 @@
                     <tr>
                         <th class="w-1"></th>
                         <th>
-                            amount
+                            Monto
                         </th>
                         <th>
-                            type
+                            Tipo
                         </th>
-                        <th>payment method</th>
-                        <th>status</th>
-                        <th>paid_at</th>
-                        <th>created At</th>
+                        <th>Método de pago</th>
+                        <th>Estado</th>
+                        <th>Fecha de pago</th>
+                        <th>Fecha de Creación</th>
                         <th></th>
                     </tr>
                     </thead>
@@ -55,7 +52,7 @@
                         <tr v-for="payment in payments" v-if="payments.length">
                             <td>
                                 <input class="form-check-input m-0 align-middle table-selectable-check" type="checkbox"
-                                       aria-label="Select invoice" value="true">
+                                        aria-label="Seleccionar factura" value="true">
                             </td>
                             <td>{{ money_format(payment.amount) }}</td>
                             <td>
@@ -79,25 +76,25 @@
                                 <div class="dropdown" v-if="Object.values(payment.access).some(per => per)">
                                     <button class="btn dropdown-toggle align-text-top" data-bs-boundary="viewport"
                                             data-bs-toggle="dropdown" aria-expanded="true">
-                                        Actions
+                                        Acciones
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-end" data-popper-placement="bottom-end">
                                         <button class="dropdown-item align-middle"
                                                 @click="openEditModal(payment)"
                                                 v-if="payment.access.edit">
                                             <IconEdit class="icon icon1"/>
-                                            Edit
+                                            Editar
                                         </button>
                                     </div>
                                 </div>
                             </td>
                         </tr>
                         <tr v-else>
-                            <td colspan="8" class="text-center">Payments Record Not exists.</td>
+                            <td colspan="8" class="text-center">No existen registros de pagos.</td>
                         </tr>
                         <tr class="border-top-wide">
-                            <td colspan="4" class="text-center">Total Price: {{ money_format(booking.total_price) }}</td>
-                            <td colspan="4" class="text-center">Deposit Amount: {{
+                            <td colspan="4" class="text-center">Precio Total: {{ money_format(booking.total_price) }}</td>
+                            <td colspan="4" class="text-center">Monto del Depósito: {{
                                     money_format(booking.deposit_amount)
                                 }}</td>
                         </tr>

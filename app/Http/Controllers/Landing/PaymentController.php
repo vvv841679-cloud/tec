@@ -54,8 +54,11 @@ class PaymentController extends Controller
 
         Stripe::setApiKey(config('services.stripe.secret'));
 
+        $pendingPayment = $booking->payments()->where('status', \App\Enums\PaymentStatus::PENDING)->first();
+        $amountToPay = $pendingPayment ? $pendingPayment->amount : $booking->total_price;
+
         $intent = PaymentIntent::create([
-            'amount' => $booking->total_price * 100,
+            'amount' => (int) ($amountToPay * 100),
             'currency' => 'usd',
             'metadata' => [
                 'user_id' => auth('customer')->id(),
@@ -91,16 +94,22 @@ class PaymentController extends Controller
 
         if ($intent->status === 'succeeded') {
             DB::Transaction(function () use ($intent, $booking) {
+                $payment = $booking->payments()->where('reference', $intent->id)->first();
+                
+                if ($payment) {
+                    $payment->update([
+                        'status' => PaymentStatus::PAID,
+                        'paid_at' => now(),
+                    ]);
+                }
+
+                // Calculate total paid including the one just updated
+                $totalPaid = $booking->payments()->where('status', PaymentStatus::PAID)->sum('amount');
+                $paymentStatus = $totalPaid >= $booking->total_price ? BookingPayment::PAID : BookingPayment::PARTIALLY_PAID;
+
                 $booking->update([
                     'status' => BookingStatus::RESERVED,
-                    'payment_status' => BookingPayment::PAID,
-                ]);
-
-                $payment = $booking->payments()->first();
-
-                $payment->update([
-                    'status' => PaymentStatus::PAID,
-                    'paid_at' => now(),
+                    'payment_status' => $paymentStatus,
                 ]);
 
                 $booking->statuses()->create([
@@ -119,7 +128,7 @@ class PaymentController extends Controller
     public function success(Booking $booking)
     {
         if (
-            !$booking->isPaid() ||
+            !$booking->hasPaidMinimumPercentage(0.30) ||
             $booking->customer_id !== auth('customer')->id()
         ) {
             abort(403);

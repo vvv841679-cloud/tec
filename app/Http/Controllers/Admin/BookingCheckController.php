@@ -17,14 +17,14 @@ class BookingCheckController extends Controller
     {
         if($booking->check_in->gt(now()->startOfDay())) {
             return redirect()->back()->with([
-                'message' => 'Check-in can only be done on the booking date.',
+                'message' => 'El check-in solo puede realizarse en la fecha de la reserva.',
                 'type' => 'error'
             ]);
         }
 
         if($booking->status !== BookingStatus::RESERVED) {
             return redirect()->back()->with([
-                'message' => 'Only reserved bookings can be checked in.',
+                'message' => 'Solo las reservas en estado "Reservado" pueden hacer check-in.',
                 'type' => 'error'
             ]);
         }
@@ -43,8 +43,9 @@ class BookingCheckController extends Controller
             ]);
         });
 
-
-        return redirect()->back()->with(['message' => 'Booking has been successfully checked in.']);
+        return redirect()->back()->with([
+            'message' => 'La reserva ha sido registrada exitosamente en check-in.'
+        ]);
     }
 
     #[Authorize("checkOut", 'booking')]
@@ -52,21 +53,21 @@ class BookingCheckController extends Controller
     {
         if($booking->check_out->gt(now()->startOfDay())) {
             return redirect()->back()->with([
-                'message' => 'Check-out can only be done on the booking checkout date.',
+                'message' => 'El check-out solo puede realizarse en la fecha de salida de la reserva.',
                 'type' => 'error'
             ]);
         }
 
         if($booking->status !== BookingStatus::CHECK_IN) {
             return redirect()->back()->with([
-                'message' => 'Only bookings that have been checked in can be checked out.',
+                'message' => 'Solo las reservas que ya hicieron check-in pueden hacer check-out.',
                 'type' => 'error'
             ]);
         }
 
         if($booking->payment_status !== BookingPayment::PAID) {
             return redirect()->back()->with([
-                'message' => 'The customer has not completed full payment.',
+                'message' => 'El cliente no ha completado el pago total.',
                 'type' => 'error'
             ]);
         }
@@ -85,6 +86,8 @@ class BookingCheckController extends Controller
             ]);
         });
 
-        return redirect()->back()->with(['message' => 'Booking has been successfully checked out.']);
+        return redirect()->back()->with([
+            'message' => 'La reserva ha sido registrada exitosamente en check-out.'
+        ]);
     }
 }
