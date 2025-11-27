@@ -1,0 +1,575 @@
+@startuml Sistema de Gestión Hotelera - Diagrama de Clases
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+
+title Sistema de Gestión Hotelera\nDiagrama de Clases UML 2.5
+
+' ============================================
+' ADMINISTRACIÓN Y USUARIOS
+' ============================================
+
+class User {
+  + id: bigint <<PK>>
+  + first_name: string
+  + last_name: string
+  + sex: enum {male, female, other}
+  + is_super_admin: boolean
+  + email: string <<unique>>
+  + password: string
+  + remember_token: string
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + roles()
+  + permissions()
+  + hasRole(): boolean
+  + hasPermission(): boolean
+}
+
+class PasswordResetToken {
+  + email: string <<PK>>
+  + token: string
+  + created_at: timestamp
+}
+
+' ============================================
+' CLIENTES
+' ============================================
+
+class Customer {
+  + id: bigint <<PK>>
+  + first_name: string
+  + last_name: string
+  + national_id: bigint <<FK>>
+  + email: string <<unique>>
+  + mobile: string <<unique>>
+  + email_verified_at: timestamp
+  + mobile_verified_at: timestamp
+  + password: string
+  + sex: enum {male, female, other}
+  + birthdate: date
+  + status: enum
+  + is_complete: boolean
+  + remember_token: string
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + country()
+  + bookings()
+  + verifications()
+}
+
+class Country {
+  + id: bigint <<PK>>
+  + name: string <<unique>>
+  + short: string <<unique>>
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + customers()
+}
+
+class CustomerVerification {
+  + id: bigint <<PK>>
+  + customer_id: bigint <<FK>>
+  + code: string
+  + expires_at: timestamp
+  + verified_at: timestamp
+  --
+  + customer()
+}
+
+class CustomerPasswordReset {
+  + email: string <<PK>>
+  + token: string
+  + created_at: timestamp
+}
+
+' ============================================
+' HABITACIONES Y TIPOS
+' ============================================
+
+class RoomType {
+  + id: bigint <<PK>>
+  + name: string <<unique>>
+  + slug: string <<unique>>
+  + view: string
+  + description: text
+  + size: integer
+  + max_adult: integer
+  + max_children: integer
+  + max_total_guests: integer
+  + price: decimal(8,2)
+  + extra_bed_price: decimal(8,2)
+  + status: enum
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + facilities()
+  + bedTypes()
+  + rooms()
+  + media()
+}
+
+class Room {
+  + id: bigint <<PK>>
+  + room_number: integer <<unique>>
+  + room_type_id: bigint <<FK>>
+  + floor_number: integer
+  + status: enum
+  + smoking_preference: enum
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + type()
+  + bookings()
+}
+
+class BedType {
+  + id: bigint <<PK>>
+  + name: string <<unique>>
+  + capacity: integer
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + roomTypes()
+}
+
+class Facility {
+  + id: bigint <<PK>>
+  + name: string
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + roomTypes()
+}
+
+class RoomTypeBed {
+  + room_type_id: bigint <<PK,FK>>
+  + bed_type_id: bigint <<PK,FK>>
+  + quantity: integer
+  --
+}
+
+class RoomTypeFacility {
+  + room_type_id: bigint <<PK,FK>>
+  + facility_id: bigint <<PK,FK>>
+  --
+}
+
+' ============================================
+' RESERVAS (BOOKINGS)
+' ============================================
+
+class Booking {
+  + id: bigint <<PK>>
+  + ref_number: string <<unique>>
+  + customer_id: bigint <<FK>>
+  + adults: integer
+  + children: integer
+  + special_requests: text
+  + smoking_preference: enum
+  + check_in: date
+  + check_out: date
+  + status: enum
+  + payment_status: enum
+  + lock_until_at: timestamp
+  + meal_plan_id: bigint <<FK>>
+  + total_price: decimal(8,2)
+  + deposit_amount: decimal(8,2)
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + customer()
+  + rooms()
+  + mealPlan()
+  + statuses()
+  + charges()
+  + children()
+  + payments()
+}
+
+class BookingRoom {
+  + booking_id: bigint <<PK,FK>>
+  + room_id: bigint <<PK,FK>>
+  --
+}
+
+class BookingStatus {
+  + id: bigint <<PK>>
+  + booking_id: bigint <<FK>>
+  + status: enum
+  + description: text
+  + created_at: timestamp
+  --
+  + booking()
+}
+
+class BookingCharge {
+  + id: bigint <<PK>>
+  + booking_id: bigint <<FK>>
+  + charge_type: enum
+  + description: text
+  + amount: decimal(8,2)
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + booking()
+}
+
+class BookingChild {
+  + id: bigint <<PK>>
+  + booking_id: bigint <<FK>>
+  + age: smallint
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + booking()
+}
+
+' ============================================
+' PAGOS
+' ============================================
+
+class Payment {
+  + id: bigint <<PK>>
+  + booking_id: bigint <<FK>>
+  + amount: decimal(8,2)
+  + type: enum
+  + payment_method: enum
+  + status: enum
+  + reference: string
+  + qr_image_url: text
+  + qr_transaction_id: string
+  + payment_number: string <<unique>>
+  + qr_response: json
+  + note: text
+  + paid_at: timestamp
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + booking()
+}
+
+' ============================================
+' CONFIGURACIÓN
+' ============================================
+
+class MealPlan {
+  + id: bigint <<PK>>
+  + code: string <<unique>>
+  + name: string <<unique>>
+  + description: text
+  + adult_price: decimal(8,2)
+  + child_price: decimal(8,2)
+  + infant_price: decimal(8,2)
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + bookings()
+}
+
+class CancellationRule {
+  + id: bigint <<PK>>
+  + min_days_before: integer
+  + max_days_before: integer
+  + penalty_percent: decimal
+  + description: text
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + bookings()
+}
+
+' ============================================
+' PERMISOS Y ROLES (Spatie Permission)
+' ============================================
+
+class Role {
+  + id: bigint <<PK>>
+  + name: string
+  + guard_name: string
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + users()
+  + permissions()
+  + menus()
+}
+
+class Permission {
+  + id: bigint <<PK>>
+  + name: string
+  + guard_name: string
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + roles()
+}
+
+class ModelHasPermission {
+  + permission_id: bigint <<PK,FK>>
+  + model_type: string <<PK>>
+  + model_id: bigint <<PK>>
+  --
+}
+
+class ModelHasRole {
+  + role_id: bigint <<PK,FK>>
+  + model_type: string <<PK>>
+  + model_id: bigint <<PK>>
+  --
+}
+
+class RoleHasPermission {
+  + permission_id: bigint <<PK,FK>>
+  + role_id: bigint <<PK,FK>>
+  --
+}
+
+' ============================================
+' MENÚS
+' ============================================
+
+class Menu {
+  + id: bigint <<PK>>
+  + parent_id: bigint <<FK>>
+  + name: string
+  + route_name: string
+  + icon: string
+  + order: integer
+  + active: boolean
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+  + parent()
+  + children()
+  + roles()
+}
+
+class MenuRole {
+  + menu_id: bigint <<PK,FK>>
+  + role_id: bigint <<PK,FK>>
+  --
+}
+
+' ============================================
+' MEDIA (Spatie Media Library)
+' ============================================
+
+class Media {
+  + id: bigint <<PK>>
+  + model_type: string
+  + model_id: bigint
+  + uuid: uuid <<unique>>
+  + collection_name: string
+  + name: string
+  + file_name: string
+  + mime_type: string
+  + disk: string
+  + conversions_disk: string
+  + size: bigint
+  + manipulations: json
+  + custom_properties: json
+  + generated_conversions: json
+  + responsive_images: json
+  + order_column: integer
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+}
+
+' ============================================
+' SISTEMA
+' ============================================
+
+class Session {
+  + id: string <<PK>>
+  + user_id: bigint
+  + ip_address: string
+  + user_agent: text
+  + payload: longtext
+  + last_activity: integer
+  --
+}
+
+class PageView {
+  + id: bigint <<PK>>
+  + url: string <<unique>>
+  + page_title: string
+  + visit_count: bigint
+  + created_at: timestamp
+  + updated_at: timestamp
+  --
+}
+
+class Cache {
+  + key: string <<PK>>
+  + value: mediumtext
+  + expiration: integer
+  --
+}
+
+class CacheLock {
+  + key: string <<PK>>
+  + owner: string
+  + expiration: integer
+  --
+}
+
+class Job {
+  + id: bigint <<PK>>
+  + queue: string
+  + payload: longtext
+  + attempts: tinyint
+  + reserved_at: integer
+  + available_at: integer
+  + created_at: integer
+  --
+}
+
+class JobBatch {
+  + id: string <<PK>>
+  + name: string
+  + total_jobs: integer
+  + pending_jobs: integer
+  + failed_jobs: integer
+  + failed_job_ids: longtext
+  + options: mediumtext
+  + cancelled_at: integer
+  + created_at: integer
+  + finished_at: integer
+  --
+}
+
+class FailedJob {
+  + id: bigint <<PK>>
+  + uuid: string <<unique>>
+  + connection: text
+  + queue: text
+  + payload: longtext
+  + exception: longtext
+  + failed_at: timestamp
+  --
+}
+
+' ============================================
+' RELACIONES 1:N
+' ============================================
+
+Country "1" -- "0..*" Customer : has many >
+Customer "1" -- "0..*" Booking : has many >
+Customer "1" -- "0..*" CustomerVerification : has many >
+
+RoomType "1" -- "0..*" Room : has many >
+
+Booking "1" -- "0..*" BookingStatus : has many >
+Booking "1" -- "0..*" BookingCharge : has many >
+Booking "1" -- "0..*" BookingChild : has many >
+Booking "1" -- "0..*" Payment : has many >
+Booking "0..*" -- "0..1" MealPlan : belongs to <
+
+Menu "0..1" -- "0..*" Menu : has children >
+
+' ============================================
+' RELACIONES N:M (Many-to-Many)
+' ============================================
+
+RoomType "0..*" -- "0..*" BedType
+(RoomType, BedType) .. RoomTypeBed
+
+RoomType "0..*" -- "0..*" Facility
+(RoomType, Facility) .. RoomTypeFacility
+
+Booking "0..*" -- "0..*" Room
+(Booking, Room) .. BookingRoom
+
+User "0..*" -- "0..*" Role
+(User, Role) .. ModelHasRole
+
+Role "0..*" -- "0..*" Permission
+(Role, Permission) .. RoleHasPermission
+
+Menu "0..*" -- "0..*" Role
+(Menu, Role) .. MenuRole
+
+' ============================================
+' RELACIONES POLIMÓRFICAS
+' ============================================
+
+User "1" -- "0..*" ModelHasPermission : morphed by
+User "1" -- "0..*" ModelHasRole : morphed by
+
+RoomType "1" -- "0..*" Media : morphMany >
+
+Permission "1" -- "0..*" ModelHasPermission : has many >
+Permission "1" -- "0..*" RoleHasPermission : has many >
+
+Role "1" -- "0..*" ModelHasRole : has many >
+Role "1" -- "0..*" RoleHasPermission : has many >
+Role "1" -- "0..*" MenuRole : has many >
+
+Menu "1" -- "0..*" MenuRole : has many >
+
+' ============================================
+' NOTAS Y LEYENDA
+' ============================================
+
+note right of User
+  **Administradores del sistema**
+  Usuarios con acceso al panel
+  administrativo (Filament)
+end note
+
+note right of Customer
+  **Clientes del hotel**
+  Usuarios que realizan reservas
+  desde el sitio web público
+end note
+
+note right of Booking
+  **Estados posibles:**
+  - pending
+  - confirmed
+  - checked_in
+  - checked_out
+  - cancelled
+
+  **Estados de pago:**
+  - pending
+  - partially_paid
+  - paid
+  - refunded
+end note
+
+note right of Payment
+  **Métodos de pago:**
+  - credit_card
+  - debit_card
+  - cash
+  - bank_transfer
+  - qr_code
+
+  **Tipos:**
+  - deposit
+  - full_payment
+  - refund
+end note
+
+note bottom of Media
+  **Relación polimórfica**
+  Permite adjuntar archivos
+  a cualquier modelo del sistema
+  (imágenes de habitaciones, etc.)
+end note
+
+note bottom of RoomTypeBed
+  **Tabla pivot con atributo adicional**
+  quantity: cantidad de camas
+  de ese tipo en la habitación
+end note
+
+@enduml

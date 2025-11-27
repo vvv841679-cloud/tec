@@ -1,0 +1,344 @@
+@startuml Flujos de Usuario - Sistema de Gestión Hotelera
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+
+title Sistema de Gestión Hotelera\nFlujos de Usuario Principales
+
+' ============================================
+' FLUJO 1: PROCESO DE RESERVA (CLIENTE)
+' ============================================
+
+|Cliente|
+start
+:Visitar sitio web;
+
+:Buscar habitaciones disponibles;
+note right
+  Ingresar:
+  - Fecha check-in
+  - Fecha check-out
+  - Número de adultos
+  - Número de niños
+end note
+
+:Ver resultados de búsqueda;
+
+if (¿Encontró habitación?) then (sí)
+  :Seleccionar habitación;
+  :Ver detalles y precio;
+
+  if (¿Confirmar selección?) then (sí)
+    :Agregar al carrito;
+
+    if (¿Seleccionar plan de comidas?) then (sí)
+      :Elegir plan de comidas;
+    endif
+
+    :Proceder al checkout;
+
+    if (¿Está autenticado?) then (no)
+      |Sistema|
+      :Mostrar opciones;
+      |Cliente|
+      if (¿Tiene cuenta?) then (no)
+        :Crear cuenta nueva;
+        :Verificar email;
+      else (sí)
+        :Iniciar sesión;
+      endif
+    endif
+
+    |Cliente|
+    :Ingresar/Verificar datos personales;
+    note right
+      - Nombre completo
+      - Email
+      - Teléfono
+      - País
+      - Datos adicionales
+    end note
+
+    :Revisar resumen de reserva;
+
+    :Seleccionar método de pago;
+    note right
+      Opciones:
+      - Tarjeta de crédito/débito
+      - QR (MasterQR)
+      - Transferencia bancaria
+      - Efectivo (en hotel)
+    end note
+
+    if (Método = QR) then (sí)
+      |Sistema|
+      :Generar código QR;
+      :Mostrar QR al cliente;
+      |Cliente|
+      :Escanear QR con app bancaria;
+      :Realizar pago;
+      |Sistema|
+      :Esperar webhook de confirmación;
+      :Validar pago;
+    else (otros métodos)
+      |Cliente|
+      :Procesar pago;
+      |Sistema|
+      :Validar pago;
+    endif
+
+    if (¿Pago exitoso?) then (sí)
+      |Sistema|
+      :Crear reserva en BD;
+      :Generar número de referencia;
+      :Enviar email de confirmación;
+      :Actualizar disponibilidad;
+      |Cliente|
+      :Ver confirmación de reserva;
+      note right
+        Número de referencia
+        Detalles de la reserva
+        Información de pago
+      end note
+      stop
+    else (no)
+      :Mostrar error de pago;
+      :Reintentar o cancelar;
+      stop
+    endif
+
+  else (no)
+    :Continuar buscando;
+  endif
+else (no)
+  :Mostrar mensaje "No disponible";
+  :Modificar búsqueda;
+endif
+
+' ============================================
+' FLUJO 2: CANCELACIÓN DE RESERVA (CLIENTE)
+' ============================================
+
+|#AntiqueWhite|Cliente|
+start
+:Iniciar sesión;
+:Ir a "Mis Reservas";
+:Seleccionar reserva a cancelar;
+
+|#LightBlue|Sistema|
+:Verificar estado de reserva;
+
+if (¿Reserva cancelable?) then (sí)
+  :Calcular penalidad según reglas;
+  note right
+    Reglas basadas en días
+    antes del check-in
+  end note
+
+  |#AntiqueWhite|Cliente|
+  :Mostrar información de cancelación;
+  note right
+    - Monto a reembolsar
+    - Penalidad aplicable
+    - Términos
+  end note
+
+  if (¿Confirmar cancelación?) then (sí)
+    |#LightBlue|Sistema|
+    :Cambiar estado a "cancelled";
+    :Registrar en BookingStatus;
+    :Liberar habitaciones;
+    :Calcular reembolso;
+
+    if (¿Hay reembolso?) then (sí)
+      :Crear registro de Payment (refund);
+      :Procesar reembolso;
+      :Enviar email de confirmación;
+    else (no)
+      :Enviar email de cancelación;
+    endif
+
+    |#AntiqueWhite|Cliente|
+    :Ver confirmación de cancelación;
+    stop
+  else (no)
+    :Volver a mis reservas;
+    stop
+  endif
+else (no)
+  :Mostrar mensaje de error;
+  note right
+    Razones:
+    - Ya cancelada
+    - Ya iniciada (checked-in)
+    - Fuera de plazo
+  end note
+  stop
+endif
+
+' ============================================
+' FLUJO 3: GESTIÓN DE RESERVA (ADMIN)
+' ============================================
+
+|#Lavender|Administrador|
+start
+:Iniciar sesión en panel admin;
+:Ir a módulo de Reservas;
+
+if (¿Acción?) then (crear nueva)
+  :Seleccionar "Nueva Reserva";
+  :Buscar disponibilidad;
+  :Seleccionar habitación(es);
+  :Buscar o crear cliente;
+  :Ingresar datos de reserva;
+  note right
+    - Fechas
+    - Huéspedes
+    - Plan de comidas
+    - Precio manual (opcional)
+  end note
+  :Guardar reserva;
+  |#LightGreen|Sistema|
+  :Crear registro de Booking;
+  :Asignar número de referencia;
+  :Crear BookingStatus inicial;
+  :Enviar notificación al cliente;
+  stop
+
+else (ver/editar)
+  :Seleccionar reserva existente;
+  :Ver detalles completos;
+
+  if (¿Acción?) then (cambiar estado)
+    |#Lavender|Administrador|
+    :Seleccionar nuevo estado;
+    note right
+      Estados:
+      - pending → confirmed
+      - confirmed → checked_in
+      - checked_in → checked_out
+      - * → cancelled
+    end note
+
+    |#LightGreen|Sistema|
+    :Actualizar Booking.status;
+    :Crear registro en BookingStatus;
+    :Enviar notificación;
+    stop
+
+  else (editar datos)
+    |#Lavender|Administrador|
+    :Modificar información;
+    note right
+      Puede cambiar:
+      - Fechas (si disponible)
+      - Habitaciones
+      - Número de huéspedes
+      - Solicitudes especiales
+    end note
+    |#LightGreen|Sistema|
+    :Actualizar Booking;
+    :Recalcular precio si aplica;
+    :Crear BookingStatus (modified);
+    stop
+
+  else (registrar pago)
+    |#Lavender|Administrador|
+    :Ir a sección de pagos;
+    :Ingresar datos del pago;
+    note right
+      - Monto
+      - Método
+      - Tipo (deposit/full)
+      - Referencia
+    end note
+
+    |#LightGreen|Sistema|
+    :Crear registro de Payment;
+    :Actualizar Booking.payment_status;
+    :Enviar recibo al cliente;
+    stop
+
+  else (agregar cargo extra)
+    |#Lavender|Administrador|
+    :Agregar cargo adicional;
+    note right
+      Tipos:
+      - room_service
+      - minibar
+      - damage
+      - late_checkout
+      - other
+    end note
+
+    |#LightGreen|Sistema|
+    :Crear BookingCharge;
+    :Actualizar total_price;
+    stop
+  endif
+endif
+
+' ============================================
+' FLUJO 4: PROCESO DE CHECK-IN (ADMIN)
+' ============================================
+
+|#Lavender|Recepcionista|
+start
+:Cliente llega al hotel;
+:Buscar reserva por;
+note right
+  - Número de referencia
+  - Email
+  - Nombre
+end note
+
+|#LightGreen|Sistema|
+:Encontrar reserva;
+
+if (¿Reserva encontrada?) then (sí)
+  :Mostrar detalles;
+
+  |#Lavender|Recepcionista|
+  :Verificar identidad del cliente;
+  :Verificar pago;
+
+  if (¿Pago completo?) then (no)
+    :Registrar pago pendiente;
+    |#LightGreen|Sistema|
+    :Crear Payment;
+    :Actualizar payment_status;
+  endif
+
+  |#Lavender|Recepcionista|
+  :Asignar habitaciones específicas;
+  note right
+    Según preferencias:
+    - Fumar/No fumar
+    - Piso
+    - Vista
+  end note
+
+  :Entregar llaves;
+  :Cambiar estado a "checked_in";
+
+  |#LightGreen|Sistema|
+  :Actualizar Booking.status;
+  :Crear BookingStatus;
+  :Actualizar Room.status (occupied);
+  :Registrar hora de check-in;
+
+  |#Lavender|Recepcionista|
+  :Dar bienvenida al cliente;
+  stop
+
+else (no)
+  :Informar que no hay reserva;
+  if (¿Crear reserva walk-in?) then (sí)
+    :Crear nueva reserva;
+    note right: Ver Flujo 3
+  else (no)
+    stop
+  endif
+endif
+
+@enduml

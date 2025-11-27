@@ -1,0 +1,208 @@
+@startuml Mapa de Sitio - Sistema de Gestión Hotelera
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+
+title Sistema de Gestión Hotelera\nMapa de Sitio Completo
+
+' Estilo para nodos
+skinparam rectangle {
+  BackgroundColor<<public>> #E3F2FD
+  BackgroundColor<<admin>> #FFF3E0
+  BackgroundColor<<auth>> #F3E5F5
+  BorderColor #000000
+  FontSize 12
+}
+
+' ============================================
+' SITIO PÚBLICO
+' ============================================
+
+package "SITIO PÚBLICO" #E3F2FD {
+
+  rectangle "Inicio (Home)" as home <<public>> {
+    - Búsqueda rápida
+    - Habitaciones destacadas
+    - Información del hotel
+  }
+
+  package "Habitaciones" {
+    rectangle "Listado de Habitaciones" as rooms_list <<public>>
+    rectangle "Detalles de Habitación" as room_detail <<public>>
+    rectangle "Galería de Imágenes" as room_gallery <<public>>
+  }
+
+  package "Reservas" {
+    rectangle "Búsqueda de Disponibilidad" as search <<public>>
+    rectangle "Resultados de Búsqueda" as search_results <<public>>
+    rectangle "Carrito de Reserva" as cart <<public>>
+    rectangle "Checkout - Paso 1\n(Datos del cliente)" as checkout1 <<public>>
+    rectangle "Checkout - Paso 2\n(Resumen y pago)" as checkout2 <<public>>
+    rectangle "Confirmación de Reserva" as confirmation <<public>>
+  }
+
+  package "Autenticación Cliente" {
+    rectangle "Login Cliente" as client_login <<auth>>
+    rectangle "Registro Cliente" as client_register <<auth>>
+    rectangle "Verificación Email" as email_verify <<auth>>
+    rectangle "Recuperar Contraseña" as password_reset <<auth>>
+  }
+
+  package "Área de Cliente" {
+    rectangle "Mi Perfil" as client_profile <<public>>
+    rectangle "Mis Reservas" as client_bookings <<public>>
+    rectangle "Detalle de Reserva" as booking_detail <<public>>
+    rectangle "Cancelar Reserva" as cancel_booking <<public>>
+    rectangle "Mis Pagos" as client_payments <<public>>
+  }
+
+  package "Información" {
+    rectangle "Acerca del Hotel" as about <<public>>
+    rectangle "Contacto" as contact <<public>>
+    rectangle "Políticas" as policies <<public>>
+    rectangle "Términos y Condiciones" as terms <<public>>
+  }
+}
+
+' ============================================
+' PANEL ADMINISTRATIVO
+' ============================================
+
+package "PANEL ADMINISTRATIVO (FILAMENT)" #FFF3E0 {
+
+  rectangle "Login Admin" as admin_login <<auth>>
+
+  rectangle "Dashboard" as dashboard <<admin>> {
+    - Estadísticas
+    - Reservas del día
+    - Ocupación
+    - Ingresos
+  }
+
+  package "Gestión de Habitaciones" {
+    rectangle "Tipos de Habitación" as admin_room_types <<admin>>
+    rectangle "Habitaciones" as admin_rooms <<admin>>
+    rectangle "Tipos de Cama" as admin_bed_types <<admin>>
+    rectangle "Facilidades" as admin_facilities <<admin>>
+  }
+
+  package "Gestión de Reservas" {
+    rectangle "Listado de Reservas" as admin_bookings <<admin>>
+    rectangle "Crear Reserva Manual" as admin_new_booking <<admin>>
+    rectangle "Editar Reserva" as admin_edit_booking <<admin>>
+    rectangle "Ver Detalle Reserva" as admin_view_booking <<admin>>
+    rectangle "Cambiar Estado" as admin_booking_status <<admin>>
+    rectangle "Calendar View" as admin_calendar <<admin>>
+  }
+
+  package "Gestión de Pagos" {
+    rectangle "Listado de Pagos" as admin_payments <<admin>>
+    rectangle "Registrar Pago" as admin_new_payment <<admin>>
+    rectangle "Ver Detalle Pago" as admin_view_payment <<admin>>
+    rectangle "Reembolsos" as admin_refunds <<admin>>
+  }
+
+  package "Gestión de Clientes" {
+    rectangle "Listado de Clientes" as admin_customers <<admin>>
+    rectangle "Ver Cliente" as admin_view_customer <<admin>>
+    rectangle "Editar Cliente" as admin_edit_customer <<admin>>
+    rectangle "Historial de Reservas" as admin_customer_history <<admin>>
+  }
+
+  package "Configuración" {
+    rectangle "Planes de Comida" as admin_meal_plans <<admin>>
+    rectangle "Reglas de Cancelación" as admin_cancellation <<admin>>
+    rectangle "Países" as admin_countries <<admin>>
+    rectangle "Configuración General" as admin_settings <<admin>>
+  }
+
+  package "Sistema" {
+    rectangle "Usuarios Admin" as admin_users <<admin>>
+    rectangle "Roles y Permisos" as admin_roles <<admin>>
+    rectangle "Menús" as admin_menus <<admin>>
+    rectangle "Estadísticas de Visitas" as admin_analytics <<admin>>
+  }
+}
+
+' ============================================
+' RELACIONES - SITIO PÚBLICO
+' ============================================
+
+home --> rooms_list : "Ver habitaciones"
+home --> search : "Buscar disponibilidad"
+home --> about : "Información"
+home --> client_login : "Iniciar sesión"
+
+rooms_list --> room_detail : "Ver detalles"
+room_detail --> room_gallery : "Ver galería"
+room_detail --> search : "Reservar"
+
+search --> search_results : "Buscar"
+search_results --> cart : "Seleccionar habitación"
+cart --> checkout1 : "Proceder al pago"
+checkout1 --> client_login : "Si no está logueado"
+checkout1 --> checkout2 : "Continuar"
+checkout2 --> confirmation : "Confirmar pago"
+
+client_login --> client_register : "Registrarse"
+client_login --> password_reset : "Olvidé mi contraseña"
+client_register --> email_verify : "Verificar email"
+email_verify --> client_profile : "Completar perfil"
+
+client_login --> client_profile : "Después de login"
+client_profile --> client_bookings : "Ver mis reservas"
+client_bookings --> booking_detail : "Ver detalle"
+booking_detail --> cancel_booking : "Cancelar"
+booking_detail --> client_payments : "Ver pagos"
+
+' ============================================
+' RELACIONES - PANEL ADMIN
+' ============================================
+
+admin_login --> dashboard : "Después de login"
+
+dashboard --> admin_bookings : "Ver todas las reservas"
+dashboard --> admin_calendar : "Ver calendario"
+
+dashboard --> admin_room_types : "Gestionar"
+admin_room_types --> admin_rooms : "Ver habitaciones"
+admin_room_types --> admin_bed_types : "Configurar camas"
+admin_room_types --> admin_facilities : "Configurar facilidades"
+
+dashboard --> admin_bookings : "Gestionar"
+admin_bookings --> admin_new_booking : "Nueva reserva"
+admin_bookings --> admin_view_booking : "Ver detalle"
+admin_bookings --> admin_edit_booking : "Editar"
+admin_view_booking --> admin_booking_status : "Cambiar estado"
+
+dashboard --> admin_payments : "Gestionar"
+admin_payments --> admin_new_payment : "Registrar pago"
+admin_payments --> admin_view_payment : "Ver detalle"
+admin_payments --> admin_refunds : "Reembolsar"
+
+dashboard --> admin_customers : "Gestionar"
+admin_customers --> admin_view_customer : "Ver detalle"
+admin_customers --> admin_edit_customer : "Editar"
+admin_view_customer --> admin_customer_history : "Ver historial"
+
+dashboard --> admin_meal_plans : "Configurar"
+dashboard --> admin_cancellation : "Configurar"
+dashboard --> admin_countries : "Configurar"
+dashboard --> admin_settings : "Configurar"
+
+dashboard --> admin_users : "Gestionar"
+admin_users --> admin_roles : "Gestionar roles"
+admin_roles --> admin_menus : "Configurar menús"
+dashboard --> admin_analytics : "Ver estadísticas"
+
+' ============================================
+' LEYENDA
+' ============================================
+
+legend right
+  |<back:#E3F2FD>      | Sitio Público |
+  |<back:#FFF3E0>      | Panel Admin |
+  |<back:#F3E5F5>      | Autenticación |
+endlegend
+
+@enduml

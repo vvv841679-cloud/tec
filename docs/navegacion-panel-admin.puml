@@ -1,0 +1,530 @@
+@startuml Navegación Panel Administrativo
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+
+title Sistema de Gestión Hotelera\nDiagrama de Navegación - Panel Administrativo (Filament)
+
+' Estilos
+skinparam state {
+  BackgroundColor<<dashboard>> #673AB7
+  BackgroundColor<<rooms>> #3F51B5
+  BackgroundColor<<bookings>> #009688
+  BackgroundColor<<payments>> #4CAF50
+  BackgroundColor<<customers>> #FF9800
+  BackgroundColor<<config>> #9E9E9E
+  BackgroundColor<<system>> #607D8B
+  FontColor white
+}
+
+[*] --> login
+
+state "🔐 Login Administrador" as login {
+  login : - Email / Contraseña
+  login : - Autenticación con guard 'web'
+  login : - Verificación de permisos
+}
+
+login --> dashboard : Login exitoso
+
+state "📊 DASHBOARD" as dashboard <<dashboard>> {
+  dashboard : **Widgets principales:**
+  dashboard : - Estadísticas de reservas
+  dashboard : - Ocupación actual
+  dashboard : - Ingresos del mes
+  dashboard : - Reservas pendientes
+  dashboard : - Check-ins de hoy
+  dashboard : - Check-outs de hoy
+  dashboard : - Gráficos de tendencias
+  --
+  dashboard : **Acceso rápido:**
+  dashboard : - Nueva reserva
+  dashboard : - Ver calendario
+  dashboard : - Pagos pendientes
+}
+
+' ============================================
+' MÓDULO DE HABITACIONES
+' ============================================
+
+state "GESTIÓN DE HABITACIONES" as rooms_module <<rooms>> {
+
+  state "🏨 Tipos de Habitación" as room_types {
+    state "Lista de Tipos" as rt_list {
+      rt_list : - Tabla con filtros
+      rt_list : - Búsqueda
+      rt_list : - Estado (activo/inactivo)
+      rt_list : - Acciones en masa
+    }
+
+    state "Crear/Editar Tipo" as rt_form {
+      rt_form : **Formulario:**
+      rt_form : - Información básica
+      rt_form : - Slug (auto)
+      rt_form : - Descripción
+      rt_form : - Capacidad y precios
+      rt_form : - Facilidades (relación)
+      rt_form : - Tipos de cama (relación)
+      rt_form : - Galería de imágenes
+      rt_form : - Estado
+    }
+
+    state "Ver Detalle Tipo" as rt_view {
+      rt_view : - Información completa
+      rt_view : - Habitaciones asociadas
+      rt_view : - Reservas activas
+      rt_view : - Estadísticas
+    }
+
+    rt_list --> rt_form : Crear/Editar
+    rt_list --> rt_view : Ver
+    rt_form --> rt_list : Guardar
+    rt_view --> rt_form : Editar
+  }
+
+  state "🚪 Habitaciones" as rooms {
+    state "Lista de Habitaciones" as r_list {
+      r_list : - Filtro por tipo
+      r_list : - Filtro por piso
+      r_list : - Filtro por estado
+      r_list : - Búsqueda por número
+    }
+
+    state "Crear/Editar Habitación" as r_form {
+      r_form : - Número de habitación
+      r_form : - Tipo de habitación
+      r_form : - Piso
+      r_form : - Estado
+      r_form : - Preferencia fumar
+    }
+
+    state "Ver Disponibilidad" as r_calendar {
+      r_calendar : - Vista de calendario
+      r_calendar : - Reservas por habitación
+      r_calendar : - Mantenimientos
+    }
+
+    r_list --> r_form : Crear/Editar
+    r_list --> r_calendar : Ver calendario
+    r_form --> r_list : Guardar
+  }
+
+  state "🛏️ Tipos de Cama" as bed_types {
+    bed_types : - Lista CRUD simple
+    bed_types : - Nombre y capacidad
+    bed_types : - Icono (opcional)
+  }
+
+  state "✨ Facilidades" as facilities {
+    facilities : - Lista CRUD simple
+    facilities : - Nombre
+    facilities : - Icono (opcional)
+  }
+}
+
+' ============================================
+' MÓDULO DE RESERVAS
+' ============================================
+
+state "GESTIÓN DE RESERVAS" as bookings_module <<bookings>> {
+
+  state "📅 Lista de Reservas" as bookings_list {
+    bookings_list : **Filtros:**
+    bookings_list : - Estado
+    bookings_list : - Fechas
+    bookings_list : - Cliente
+    bookings_list : - Número de referencia
+    bookings_list : - Estado de pago
+    --
+    bookings_list : **Vistas:**
+    bookings_list : - Tabla
+    bookings_list : - Calendario
+    --
+    bookings_list : **Acciones:**
+    bookings_list : - Ver detalle
+    bookings_list : - Editar
+    bookings_list : - Cambiar estado
+    bookings_list : - Imprimir
+  }
+
+  state "➕ Nueva Reserva" as new_booking {
+    new_booking : **Paso 1: Disponibilidad**
+    new_booking : - Fechas
+    new_booking : - Tipo de habitación
+    new_booking : - Verificar disponibilidad
+    --
+    new_booking : **Paso 2: Datos**
+    new_booking : - Buscar/crear cliente
+    new_booking : - Huéspedes
+    new_booking : - Plan de comidas
+    new_booking : - Solicitudes especiales
+    --
+    new_booking : **Paso 3: Confirmación**
+    new_booking : - Asignar habitaciones
+    new_booking : - Calcular precio
+    new_booking : - Ajuste manual (opcional)
+    new_booking : - Guardar
+  }
+
+  state "🔍 Ver Detalle Reserva" as booking_view {
+    booking_view : **Información:**
+    booking_view : - Datos del cliente
+    booking_view : - Habitaciones asignadas
+    booking_view : - Fechas y huéspedes
+    booking_view : - Plan de comidas
+    booking_view : - Precio total
+    --
+    booking_view : **Historial:**
+    booking_view : - Cambios de estado
+    booking_view : - Pagos realizados
+    booking_view : - Cargos extra
+    --
+    booking_view : **Acciones:**
+    booking_view : - Cambiar estado
+    booking_view : - Agregar pago
+    booking_view : - Agregar cargo
+    booking_view : - Editar
+    booking_view : - Cancelar
+    booking_view : - Imprimir voucher
+  }
+
+  state "✏️ Editar Reserva" as edit_booking {
+    edit_booking : - Modificar fechas
+    edit_booking : - Cambiar habitaciones
+    edit_booking : - Actualizar huéspedes
+    edit_booking : - Ajustar precio
+    edit_booking : - Solicitudes especiales
+  }
+
+  state "📆 Vista Calendario" as calendar {
+    calendar : - Vista mensual/semanal
+    calendar : - Reservas por día
+    calendar : - Check-ins/Check-outs
+    calendar : - Ocupación visual
+    calendar : - Filtros por habitación
+    calendar : - Click para crear reserva
+  }
+
+  bookings_list --> booking_view : Ver
+  bookings_list --> edit_booking : Editar
+  bookings_list --> calendar : Vista calendario
+  bookings_list --> new_booking : Nueva reserva
+
+  booking_view --> edit_booking : Editar
+  booking_view --> payments_module : Agregar pago
+  booking_view --> bookings_list : Volver
+
+  new_booking --> bookings_list : Guardar
+  edit_booking --> booking_view : Guardar
+  calendar --> new_booking : Nueva reserva
+}
+
+' ============================================
+' MÓDULO DE PAGOS
+' ============================================
+
+state "GESTIÓN DE PAGOS" as payments_module <<payments>> {
+
+  state "💳 Lista de Pagos" as payments_list {
+    payments_list : **Filtros:**
+    payments_list : - Estado
+    payments_list : - Método de pago
+    payments_list : - Tipo (deposit/full/refund)
+    payments_list : - Fechas
+    payments_list : - Reserva
+    --
+    payments_list : **Información:**
+    payments_list : - Número de pago
+    payments_list : - Monto
+    payments_list : - Cliente
+    payments_list : - Estado
+  }
+
+  state "➕ Registrar Pago" as new_payment {
+    new_payment : - Seleccionar reserva
+    new_payment : - Tipo de pago
+    new_payment : - Método
+    new_payment : - Monto
+    new_payment : - Referencia
+    new_payment : - Notas
+    new_payment : - Fecha de pago
+  }
+
+  state "🔍 Ver Detalle Pago" as payment_view {
+    payment_view : - Información completa
+    payment_view : - Datos de la reserva
+    payment_view : - QR info (si aplica)
+    payment_view : - Descargar recibo
+    payment_view : - Imprimir
+  }
+
+  state "↩️ Reembolsos" as refunds {
+    refunds : - Lista de reembolsos
+    refunds : - Procesar nuevo reembolso
+    refunds : - Estado de reembolsos
+  }
+
+  payments_list --> payment_view : Ver
+  payments_list --> new_payment : Nuevo pago
+  payments_list --> refunds : Reembolsos
+
+  new_payment --> payments_list : Guardar
+  payment_view --> payments_list : Volver
+}
+
+' ============================================
+' MÓDULO DE CLIENTES
+' ============================================
+
+state "GESTIÓN DE CLIENTES" as customers_module <<customers>> {
+
+  state "👥 Lista de Clientes" as customers_list {
+    customers_list : **Filtros:**
+    customers_list : - Estado
+    customers_list : - País
+    customers_list : - Verificado
+    customers_list : - Búsqueda por nombre/email
+    --
+    customers_list : **Información:**
+    customers_list : - Nombre completo
+    customers_list : - Email / Teléfono
+    customers_list : - Total de reservas
+    customers_list : - Estado
+  }
+
+  state "🔍 Ver Cliente" as customer_view {
+    customer_view : **Información personal:**
+    customer_view : - Datos completos
+    customer_view : - País
+    customer_view : - Verificaciones
+    --
+    customer_view : **Historial:**
+    customer_view : - Reservas (todas)
+    customer_view : - Total gastado
+    customer_view : - Última visita
+    --
+    customer_view : **Acciones:**
+    customer_view : - Editar información
+    customer_view : - Nueva reserva
+    customer_view : - Enviar email
+  }
+
+  state "✏️ Editar Cliente" as customer_edit {
+    customer_edit : - Información personal
+    customer_edit : - Email / Teléfono
+    customer_edit : - País
+    customer_edit : - Estado
+    customer_edit : - Restablecer contraseña
+  }
+
+  customers_list --> customer_view : Ver
+  customer_view --> customer_edit : Editar
+  customer_view --> new_booking : Nueva reserva
+  customer_edit --> customer_view : Guardar
+}
+
+' ============================================
+' MÓDULO DE CONFIGURACIÓN
+' ============================================
+
+state "CONFIGURACIÓN" as config_module <<config>> {
+
+  state "🍽️ Planes de Comida" as meal_plans {
+    meal_plans : - Lista CRUD
+    meal_plans : - Código y nombre
+    meal_plans : - Descripción
+    meal_plans : - Precios (adulto/niño/bebé)
+    meal_plans : - Estado activo
+  }
+
+  state "📋 Reglas de Cancelación" as cancellation_rules {
+    cancellation_rules : - Lista de reglas
+    cancellation_rules : - Días antes del check-in
+    cancellation_rules : - Porcentaje de penalidad
+    cancellation_rules : - Descripción
+  }
+
+  state "🌍 Países" as countries {
+    countries : - Lista CRUD simple
+    countries : - Nombre
+    countries : - Código corto
+  }
+
+  state "⚙️ Configuración General" as settings {
+    settings : - Datos del hotel
+    settings : - Políticas generales
+    settings : - Configuración de email
+    settings : - Pasarelas de pago
+    settings : - Idioma y moneda
+  }
+}
+
+' ============================================
+' MÓDULO DE SISTEMA
+' ============================================
+
+state "SISTEMA" as system_module <<system>> {
+
+  state "👤 Usuarios Admin" as users {
+    state "Lista Usuarios" as users_list {
+      users_list : - Filtro por rol
+      users_list : - Estado
+      users_list : - Búsqueda
+    }
+
+    state "Crear/Editar Usuario" as user_form {
+      user_form : - Información personal
+      user_form : - Email / Contraseña
+      user_form : - Roles asignados
+      user_form : - Permisos directos
+      user_form : - Super Admin (checkbox)
+    }
+
+    users_list --> user_form : Crear/Editar
+    user_form --> users_list : Guardar
+  }
+
+  state "🔐 Roles y Permisos" as roles {
+    state "Lista de Roles" as roles_list {
+      roles_list : - Roles del sistema
+      roles_list : - Guard name
+      roles_list : - Permisos asignados
+    }
+
+    state "Crear/Editar Rol" as role_form {
+      role_form : - Nombre del rol
+      role_form : - Guard name
+      role_form : - Seleccionar permisos
+      role_form : - Menús visibles
+    }
+
+    state "Lista de Permisos" as permissions_list {
+      permissions_list : - Todos los permisos
+      permissions_list : - Agrupados por recurso
+      permissions_list : - CRUD básico
+    }
+
+    roles_list --> role_form : Crear/Editar
+    roles_list --> permissions_list : Ver permisos
+    role_form --> roles_list : Guardar
+  }
+
+  state "📱 Menús" as menus {
+    state "Lista de Menús" as menus_list {
+      menus_list : - Estructura jerárquica
+      menus_list : - Orden
+      menus_list : - Estado (activo)
+    }
+
+    state "Crear/Editar Menú" as menu_form {
+      menu_form : - Nombre
+      menu_form : - Ruta
+      menu_form : - Icono
+      menu_form : - Padre (para submenús)
+      menu_form : - Orden
+      menu_form : - Roles con acceso
+      menu_form : - Estado
+    }
+
+    menus_list --> menu_form : Crear/Editar
+    menu_form --> menus_list : Guardar
+  }
+
+  state "📊 Estadísticas y Analytics" as analytics {
+    analytics : - Visitas a páginas (PageView)
+    analytics : - Páginas más visitadas
+    analytics : - Tendencias de reservas
+    analytics : - Reportes financieros
+    analytics : - Ocupación histórica
+    analytics : - Exportar datos
+  }
+}
+
+' ============================================
+' NAVEGACIÓN DESDE DASHBOARD
+' ============================================
+
+dashboard --> rooms_module : "Habitaciones"
+dashboard --> bookings_module : "Reservas"
+dashboard --> payments_module : "Pagos"
+dashboard --> customers_module : "Clientes"
+dashboard --> config_module : "Configuración"
+dashboard --> system_module : "Sistema"
+
+' Acceso rápido desde dashboard
+dashboard --> new_booking : "Nueva Reserva (rápido)"
+dashboard --> calendar : "Ver Calendario"
+dashboard --> bookings_list : "Reservas de hoy"
+
+' Navegación entre módulos relacionados
+booking_view --> customer_view : Ver cliente
+customer_view --> bookings_list : Ver todas sus reservas
+booking_view --> payments_list : Ver pagos de la reserva
+
+' Volver al dashboard
+rooms_module --> dashboard : "Volver"
+bookings_module --> dashboard : "Volver"
+payments_module --> dashboard : "Volver"
+customers_module --> dashboard : "Volver"
+config_module --> dashboard : "Volver"
+system_module --> dashboard : "Volver"
+
+' ============================================
+' SIDEBAR NAVIGATION
+' ============================================
+
+note top of dashboard
+  **Sidebar Navigation (Filament):**
+  📊 Dashboard
+
+  **Operaciones:**
+  📅 Reservas
+    - Lista
+    - Calendario
+    - Nueva reserva
+  💳 Pagos
+  👥 Clientes
+
+  **Habitaciones:**
+  🏨 Tipos de Habitación
+  🚪 Habitaciones
+  🛏️ Tipos de Cama
+  ✨ Facilidades
+
+  **Configuración:**
+  🍽️ Planes de Comida
+  📋 Reglas de Cancelación
+  🌍 Países
+  ⚙️ General
+
+  **Sistema:**
+  👤 Usuarios
+  🔐 Roles y Permisos
+  📱 Menús
+  📊 Analytics
+end note
+
+note bottom of system_module
+  **Permisos por Módulo:**
+  - view_any_{resource}
+  - view_{resource}
+  - create_{resource}
+  - update_{resource}
+  - delete_{resource}
+  - delete_any_{resource}
+
+  Los usuarios ven solo los
+  menús según sus permisos
+end note
+
+legend right
+  |<back:#673AB7>     | Dashboard |
+  |<back:#3F51B5>     | Habitaciones |
+  |<back:#009688>     | Reservas |
+  |<back:#4CAF50>     | Pagos |
+  |<back:#FF9800>     | Clientes |
+  |<back:#9E9E9E>     | Configuración |
+  |<back:#607D8B>     | Sistema |
+endlegend
+
+@enduml

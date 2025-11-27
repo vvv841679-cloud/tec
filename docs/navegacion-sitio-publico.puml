@@ -1,0 +1,278 @@
+@startuml Navegación Sitio Público
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+
+title Sistema de Gestión Hotelera\nDiagrama de Navegación - Sitio Público
+
+' Estilos
+skinparam state {
+  BackgroundColor<<home>> #4CAF50
+  BackgroundColor<<main>> #2196F3
+  BackgroundColor<<auth>> #FF9800
+  BackgroundColor<<booking>> #9C27B0
+  BackgroundColor<<user>> #00BCD4
+  FontColor<<home>> white
+  FontColor<<main>> white
+  FontColor<<auth>> white
+  FontColor<<booking>> white
+  FontColor<<user>> white
+}
+
+state "🏠 PÁGINA PRINCIPAL" as home <<home>> {
+  home : **Componentes:**
+  home : - Hero con búsqueda rápida
+  home : - Habitaciones destacadas
+  home : - Servicios del hotel
+  home : - Testimonios
+  home : - Footer con enlaces
+}
+
+state "HABITACIONES" as rooms_section {
+
+  state "📋 Listado de Habitaciones" as rooms_list <<main>> {
+    rooms_list : - Grid de tipos de habitación
+    rooms_list : - Filtros (precio, capacidad)
+    rooms_list : - Ordenamiento
+  }
+
+  state "🛏️ Detalle de Habitación" as room_detail <<main>> {
+    room_detail : - Galería de imágenes
+    room_detail : - Descripción completa
+    room_detail : - Facilidades
+    room_detail : - Tipos de cama
+    room_detail : - Precio y disponibilidad
+    room_detail : - Botón "Reservar"
+  }
+}
+
+state "BÚSQUEDA Y RESERVA" as booking_section {
+
+  state "🔍 Búsqueda de Disponibilidad" as search <<booking>> {
+    search : **Formulario:**
+    search : - Check-in / Check-out
+    search : - Adultos / Niños
+    search : - Tipo de habitación (opcional)
+    search : - Preferencia de fumar
+  }
+
+  state "📊 Resultados de Búsqueda" as search_results <<booking>> {
+    search_results : - Habitaciones disponibles
+    search_results : - Precio por noche y total
+    search_results : - Botón "Seleccionar"
+    search_results : - Modificar búsqueda
+  }
+
+  state "🛒 Carrito de Reserva" as cart <<booking>> {
+    cart : - Resumen de habitación(es)
+    cart : - Selector de plan de comidas
+    cart : - Información de niños (edades)
+    cart : - Calculadora de precio
+    cart : - Solicitudes especiales
+    cart : - Botón "Proceder al pago"
+  }
+
+  state "✅ Checkout - Paso 1" as checkout1 <<booking>> {
+    checkout1 : **Datos del Cliente:**
+    checkout1 : - Información personal
+    checkout1 : - Datos de contacto
+    checkout1 : - Verificación de cuenta
+  }
+
+  state "💳 Checkout - Paso 2" as checkout2 <<booking>> {
+    checkout2 : **Pago:**
+    checkout2 : - Resumen final
+    checkout2 : - Método de pago
+    checkout2 : - Términos y condiciones
+    checkout2 : - Confirmar y pagar
+  }
+
+  state "🎉 Confirmación" as confirmation <<booking>> {
+    confirmation : - Número de referencia
+    confirmation : - Detalles de la reserva
+    confirmation : - Instrucciones
+    confirmation : - Descargar comprobante
+    confirmation : - Botón "Ir a Mis Reservas"
+  }
+}
+
+state "AUTENTICACIÓN" as auth_section {
+
+  state "🔐 Login Cliente" as login <<auth>> {
+    login : - Email / Contraseña
+    login : - Recordarme
+    login : - ¿Olvidó contraseña?
+    login : - Enlace a Registro
+  }
+
+  state "📝 Registro Cliente" as register <<auth>> {
+    register : - Datos personales
+    register : - Email / Contraseña
+    register : - Aceptar términos
+    register : - Crear cuenta
+  }
+
+  state "📧 Verificación Email" as verify <<auth>> {
+    verify : - Mensaje de confirmación
+    verify : - Reenviar código
+    verify : - Ingresar código
+  }
+
+  state "🔑 Recuperar Contraseña" as reset <<auth>> {
+    reset : - Ingresar email
+    reset : - Recibir enlace
+    reset : - Establecer nueva contraseña
+  }
+}
+
+state "ÁREA DE CLIENTE" as user_section {
+
+  state "👤 Mi Perfil" as profile <<user>> {
+    profile : - Información personal
+    profile : - Cambiar contraseña
+    profile : - Preferencias
+    profile : - Cerrar sesión
+  }
+
+  state "📅 Mis Reservas" as my_bookings <<user>> {
+    my_bookings : - Lista de reservas
+    my_bookings : - Filtros (activas/pasadas)
+    my_bookings : - Estados
+    my_bookings : - Acciones rápidas
+  }
+
+  state "🔍 Detalle de Reserva" as booking_detail <<user>> {
+    booking_detail : - Información completa
+    booking_detail : - Número de referencia
+    booking_detail : - Estado actual
+    booking_detail : - Habitaciones asignadas
+    booking_detail : - Pagos realizados
+    booking_detail : - Opciones: Cancelar
+  }
+
+  state "❌ Cancelar Reserva" as cancel <<user>> {
+    cancel : - Política de cancelación
+    cancel : - Cálculo de reembolso
+    cancel : - Confirmar cancelación
+    cancel : - Razón (opcional)
+  }
+
+  state "💰 Mis Pagos" as payments <<user>> {
+    payments : - Historial de pagos
+    payments : - Estado de pagos
+    payments : - Descargar recibos
+    payments : - Pagos pendientes
+  }
+}
+
+state "INFORMACIÓN" as info_section {
+  state "ℹ️ Acerca del Hotel" as about <<main>>
+  state "📞 Contacto" as contact <<main>>
+  state "📜 Políticas" as policies <<main>>
+  state "⚖️ Términos y Condiciones" as terms <<main>>
+}
+
+' ============================================
+' NAVEGACIÓN PRINCIPAL
+' ============================================
+
+[*] --> home
+
+home --> rooms_list : Ver habitaciones
+home --> search : Búsqueda rápida
+home --> about : Info hotel
+home --> login : Iniciar sesión
+
+' ============================================
+' FLUJO DE HABITACIONES
+' ============================================
+
+rooms_list --> room_detail : Ver detalle
+room_detail --> search : Reservar
+room_detail --> rooms_list : Volver
+
+' ============================================
+' FLUJO DE RESERVA
+' ============================================
+
+search --> search_results : Buscar
+search_results --> cart : Seleccionar
+search_results --> search : Modificar búsqueda
+
+cart --> checkout1 : Continuar
+cart --> search_results : Cambiar habitación
+
+checkout1 --> login : Si no autenticado
+checkout1 --> checkout2 : Continuar
+
+checkout2 --> confirmation : Pago exitoso
+checkout2 --> cart : Volver
+
+confirmation --> my_bookings : Ver mis reservas
+confirmation --> home : Ir a inicio
+
+' ============================================
+' FLUJO DE AUTENTICACIÓN
+' ============================================
+
+login --> register : Crear cuenta
+login --> reset : Olvidé contraseña
+login --> profile : Login exitoso
+
+register --> verify : Registrarse
+verify --> profile : Verificación exitosa
+
+reset --> login : Contraseña restaurada
+
+' ============================================
+' FLUJO DE ÁREA DE CLIENTE
+' ============================================
+
+profile --> my_bookings : Ver reservas
+profile --> payments : Ver pagos
+
+my_bookings --> booking_detail : Ver detalle
+booking_detail --> cancel : Cancelar
+booking_detail --> payments : Ver pagos
+
+cancel --> my_bookings : Después de cancelar
+
+' ============================================
+' NAVEGACIÓN GLOBAL (Header/Footer)
+' ============================================
+
+home -[hidden]-> info_section
+about --> home : Volver
+contact --> home : Volver
+policies --> home : Volver
+terms --> home : Volver
+
+note right of home
+  **Header Global (todas las páginas):**
+  - Logo → Home
+  - Habitaciones → rooms_list
+  - Ofertas
+  - Contacto
+  - Mi Cuenta → profile/login
+  - Idioma selector
+end note
+
+note bottom of info_section
+  **Footer Global (todas las páginas):**
+  - Acerca del Hotel
+  - Contacto
+  - Políticas
+  - Términos y Condiciones
+  - Redes Sociales
+  - Mapa del sitio
+end note
+
+legend right
+  |<back:#4CAF50>     | Página Principal |
+  |<back:#2196F3>     | Páginas Principales |
+  |<back:#FF9800>     | Autenticación |
+  |<back:#9C27B0>     | Proceso de Reserva |
+  |<back:#00BCD4>     | Área de Cliente |
+endlegend
+
+@enduml
