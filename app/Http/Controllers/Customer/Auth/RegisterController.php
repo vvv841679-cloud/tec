@@ -33,9 +33,12 @@ class RegisterController extends Controller
 
         auth('customer')->login($customer);
 
-        if(!$customer->isVerified()) OtpService::sendVerifyCode($customer);
+        // Verificación automática - sin envío de código
+        if(!$customer->isVerified()) {
+            $customer->update(['email_verified_at' => now()]);
+        }
 
-        return redirect()->intended(route('verifyCodeForm'));
+        return redirect()->intended(route('completeRegisterForm'));
     }
 
     public function completeRegisterForm()
