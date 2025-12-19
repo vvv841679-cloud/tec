@@ -4,11 +4,17 @@
         <div class="col">
             <h2 class="page-title text-capitalize">Reserva  {{ booking.customer.full_name }}</h2>
         </div>
-        <div class="col-auto ms-auto">
-            <Link class="btn btn-1" :href="route('admin.bookings.index')">
-                <IconArrowLeft class="icon"/>
-                Volver
-            </Link>
+        <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+                <Link class="btn btn-success" :href="route('admin.bookings.payments.index', booking.id)">
+                    <IconCreditCard class="icon"/>
+                    Gestionar Pagos
+                </Link>
+                <Link class="btn btn-1" :href="route('admin.bookings.index')">
+                    <IconArrowLeft class="icon"/>
+                    Volver
+                </Link>
+            </div>
         </div>
     </div>
     <div class="row">
@@ -85,9 +91,15 @@
                         </div>
                     </div>
                     <div class="datagrid-item">
-                        <div class="datagrid-title">Monto del Depósito</div>
-                        <div class="datagrid-content">
-                            {{ money_format(booking.deposit_amount) }}
+                        <div class="datagrid-title">Monto Pagado</div>
+                        <div class="datagrid-content text-success">
+                            <strong>{{ money_format(booking.deposit_amount) }}</strong>
+                        </div>
+                    </div>
+                    <div class="datagrid-item">
+                        <div class="datagrid-title">Saldo Pendiente</div>
+                        <div class="datagrid-content" :class="remainingAmount > 0 ? 'text-danger' : 'text-success'">
+                            <strong>{{ money_format(remainingAmount) }}</strong>
                         </div>
                     </div>
                     <div class="datagrid-item">
@@ -306,7 +318,7 @@
     <div v-if="showAddChargeModal" class="modal-backdrop fade show"></div>
 </template>
 <script setup>
-import {defineProps, ref} from "vue"
+import {defineProps, ref, computed} from "vue"
 import {IconArrowLeft, IconWindow, IconCreditCard, IconSquareCheck, IconBabyCarriage, IconPlus, IconTrash} from "@tabler/icons-vue";
 import {useEnum} from "../../../Composables/useEnum.js";
 import {Link, useForm, router} from "@inertiajs/vue3";
@@ -327,6 +339,11 @@ const {display: displayPaymentStatus} = useEnum(props.paymentStatuses)
 const {
     display: displaySmoking
 } = useEnum(props.smokingPreferences)
+
+// Calcular el saldo pendiente
+const remainingAmount = computed(() => {
+    return parseFloat(props.booking.total_price) - parseFloat(props.booking.deposit_amount)
+})
 
 // Charge management
 const showAddChargeModal = ref(false)

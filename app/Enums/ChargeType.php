@@ -8,18 +8,18 @@ enum ChargeType: string
 {
     use BaseEnum;
 
-    #[Display('Room', 'bi-house')]
+    #[Display('Habitación', 'bi-house')]
     case ROOM ='room';
 
-    #[Display('Meal Plan', 'bi-egg-fried')]
+    #[Display('Plan de Comidas', 'bi-egg-fried')]
     case MEAL_PLAN = 'meal_plan';
 
-    #[Display('Service',)]
+    #[Display('Servicio Adicional', 'bi-plus-circle')]
     case SERVICE = 'service';
 
-    #[Display('Cancellation Fee')]
+    #[Display('Tarifa de Cancelación', 'bi-x-circle')]
     case CANCELLATION_FEE = 'cancellation_fee';
 
-    #[Display('Tax', 'bi-bank')]
+    #[Display('Impuesto', 'bi-bank')]
     case TAX = 'tax';
 }

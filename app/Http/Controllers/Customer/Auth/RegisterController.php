@@ -26,19 +26,28 @@ class RegisterController extends Controller
             'email' => [
                 'required', 'email', 'max:255', Rule::unique('customers', 'email')
                     ->where(fn($query) => $query->where('is_complete', 1))
-            ]
+            ],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'mobile' => ['nullable', 'numeric', 'unique:customers,mobile'],
+            'password' => ['required', 'string', 'confirmed', 'min:8'],
         ]);
 
-        $customer = Customer::createOrFirst($data);
+        // Crear el cliente completo directamente
+        $customer = Customer::create([
+            'email' => $data['email'],
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'],
+            'mobile' => $data['mobile'] ?? null,
+            'password' => $data['password'],
+            'email_verified_at' => now(), // Verificación automática
+            'is_complete' => true,
+            'status' => CustomerStatus::Active,
+        ]);
 
         auth('customer')->login($customer);
 
-        // Verificación automática - sin envío de código
-        if(!$customer->isVerified()) {
-            $customer->update(['email_verified_at' => now()]);
-        }
-
-        return redirect()->intended(route('completeRegisterForm'));
+        return redirect()->intended(route('home'));
     }
 
     public function completeRegisterForm()

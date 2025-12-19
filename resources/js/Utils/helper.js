@@ -61,9 +61,9 @@ export function getMediaUrl(media, conversion = null) {
 
 
 export function money_format(price) {
-    const formatter = new Intl.NumberFormat('en-US', {
+    const formatter = new Intl.NumberFormat('es-BO', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'BOB',
         trailingZeroDisplay: 'stripIfInteger'
     });
 

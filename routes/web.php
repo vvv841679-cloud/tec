@@ -40,11 +40,6 @@ Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword']
 
 Route::middleware(['auth:customer', 'verified.customer'])->withoutMiddleware('auth:web')->group(function () {
     Route::delete('/logout', [AuthenticateController::class, 'delete'])->name('logout');
-
-    Route::get('/verify-code', [VerifyCodeController::class, 'verifyCodeForm'])->name('verifyCodeForm');
-    Route::post('/verify-code', [VerifyCodeController::class, 'verifyCode'])->name('verifyCode');
-    Route::post('/resend-code', [VerifyCodeController::class, 'resendCode'])->name('resendCode');
-
     Route::get('/complete-register', [RegisterController::class, 'completeRegisterForm'])->name('completeRegisterForm');
     Route::post('/complete-register', [RegisterController::class, 'completeRegister'])->name('completeRegister');
 

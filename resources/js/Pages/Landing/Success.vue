@@ -105,6 +105,47 @@
                             </div>
                         </div>
 
+                        <!-- Estado de pago -->
+                        <div class="hotel-highlights"
+                             :class="remainingAmount > 0 ? 'bg-warning-subtle' : 'bg-success-subtle'"
+                             style="border: 2px solid; border-radius: 8px;">
+                            <h3 class="text-lg-start m-0">
+                                <i :class="remainingAmount > 0 ? 'bi bi-exclamation-triangle-fill text-warning' : 'bi bi-check-circle-fill text-success'"></i>
+                                Estado de Pago
+                            </h3>
+                            <div class="d-flex flex-column gap-2 mt-3">
+                                <div class="d-flex justify-content-between">
+                                    <span><i class="bi bi-cash-coin me-2"></i>Total de la reserva:</span>
+                                    <span class="bold">{{ money_format(booking.total_price) }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span><i class="bi bi-check-circle me-2 text-success"></i>Ya pagado:</span>
+                                    <span class="bold text-success">{{ money_format(booking.deposit_amount) }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between pt-2" style="border-top: 2px solid rgba(0,0,0,0.1);">
+                                    <span class="bold" style="font-size: 1.1rem;">
+                                        <i :class="remainingAmount > 0 ? 'bi bi-exclamation-circle me-2 text-warning' : 'bi bi-check-circle me-2 text-success'"></i>
+                                        Saldo pendiente:
+                                    </span>
+                                    <span class="bold" :class="remainingAmount > 0 ? 'text-warning' : 'text-success'" style="font-size: 1.2rem;">
+                                        {{ money_format(remainingAmount) }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="alert alert-warning mt-3 mb-0" v-if="remainingAmount > 0">
+                                <small>
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Puedes completar el pago del saldo restante en cualquier momento antes o durante tu estadía.
+                                </small>
+                            </div>
+                            <div class="alert alert-success mt-3 mb-0" v-else>
+                                <small>
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    ¡Felicidades! Tu reserva está completamente pagada.
+                                </small>
+                            </div>
+                        </div>
+
                         <div class="booking-guarantees">
                             <div class="guarantee-item">
                                 <i class="bi bi-shield-check"></i>
@@ -258,6 +299,7 @@ import {diffDays, money_format} from "../../Utils/helper.js";
 import moment from "moment";
 import {usePage} from "@inertiajs/vue3";
 import {useEnum} from "../../Composables/useEnum.js";
+import {computed} from "vue";
 
 
 const {props: {auth: {customer}}} = usePage();
@@ -280,6 +322,11 @@ const {display: displaySmoking} = useEnum(props.smokings)
 const {display: displayType} = useEnum(props.types)
 const {display: displayMethod} = useEnum(props.methods)
 const {display: displayPayStatus} = useEnum(props.paymentStatuses)
+
+// Calcular el saldo pendiente
+const remainingAmount = computed(() => {
+    return parseFloat(props.booking.total_price) - parseFloat(props.booking.deposit_amount)
+})
 
 
 </script>

@@ -105,7 +105,12 @@ class   Booking extends Model
 
     public function isPayable(): bool
     {
-        return $this->status === BookingStatusEnum::PENDING && $this->lock_until_at->gte(now());
+        // Permitir pagos si:
+        // 1. Está en PENDING y dentro del tiempo de bloqueo, O
+        // 2. Está RESERVED o CHECK_IN y aún no está completamente pagado
+        return ($this->status === BookingStatusEnum::PENDING && $this->lock_until_at->gte(now()))
+            || (in_array($this->status, [BookingStatusEnum::RESERVED, BookingStatusEnum::CHECK_IN])
+                && $this->payment_status !== BookingPayment::PAID);
     }
 
     public function isPaid(): bool

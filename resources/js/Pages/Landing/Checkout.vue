@@ -125,6 +125,50 @@
                     <div class="booking-form-section col-8" data-aos="fade-right" data-aos-delay="300">
                         <div class="alert alert-danger" v-if="errorMessage" v-text="errorMessage"></div>
                         <div class="form-container">
+                            <!-- Selector de porcentaje a pagar -->
+                            <div class="mb-4">
+                                <h4 class="mb-3">Selecciona el monto a pagar</h4>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-3" v-for="option in paymentOptions" :key="option.value">
+                                        <div
+                                            class="card cursor-pointer payment-option"
+                                            :class="{ 'border-primary': selectedPercentage === option.value }"
+                                            @click="selectPercentage(option.value)"
+                                            style="transition: all 0.3s ease;">
+                                            <div class="card-body text-center p-3">
+                                                <h5 class="mb-1">{{ option.label }}</h5>
+                                                <p class="text-muted mb-0 small">{{ money_format(calculateAmount(option.value)) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Porcentaje personalizado -->
+                                <div class="mb-3">
+                                    <label class="form-label">O ingresa un porcentaje personalizado:</label>
+                                    <div class="input-group">
+                                        <input
+                                            type="number"
+                                            v-model.number="customPercentage"
+                                            @input="selectPercentage(customPercentage)"
+                                            class="form-control"
+                                            placeholder="Ej: 40"
+                                            min="30"
+                                            max="100">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <small class="text-muted">
+                                        Monto a pagar: <strong>{{ money_format(calculatedAmount) }}</strong>
+                                    </small>
+                                </div>
+
+                                <div class="alert alert-info" v-if="selectedPercentage < 100">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Pagarás el <strong>{{ selectedPercentage }}%</strong> del total ({{ money_format(calculatedAmount) }}).
+                                    El saldo restante ({{ money_format(booking.total_price - calculatedAmount) }}) podrás pagarlo después.
+                                </div>
+                            </div>
+
                             <form class="reservation-form" method="POST" @submit.prevent="handlePay">
                                 <div class="form-section">
                                     <h4>Pagar en línea</h4>
@@ -201,6 +245,29 @@
 
     const {display: displayCharge} = useEnum(charges)
 
+    // Pago parcial por porcentaje
+    const selectedPercentage = ref(100) // Por defecto 100%
+    const customPercentage = ref(null)
+    const calculatedAmount = ref(booking.total_price)
+
+    const paymentOptions = [
+        { value: 30, label: '30%' },
+        { value: 50, label: '50%' },
+        { value: 70, label: '70%' },
+        { value: 100, label: '100%' },
+    ]
+
+    const calculateAmount = (percentage) => {
+        return (booking.total_price * percentage / 100).toFixed(2)
+    }
+
+    const selectPercentage = (percentage) => {
+        if (percentage >= 30 && percentage <= 100) {
+            selectedPercentage.value = percentage
+            calculatedAmount.value = calculateAmount(percentage)
+        }
+    }
+
     onMounted(async () => {
         // Inicialización de Stripe Elements
         stripe = await loadStripe(stripeKey)
@@ -221,8 +288,11 @@
         errorMessage.value = null
 
         try {
-            // 1. Obtener el Client Secret del backend
-            const {data} = await axios.post(route('bookings.payments.store', booking.id))
+            // 1. Obtener el Client Secret del backend con el porcentaje/monto seleccionado
+            const {data} = await axios.post(route('bookings.payments.store', booking.id), {
+                percentage: selectedPercentage.value,
+                amount: calculatedAmount.value
+            })
             const clientSecret = data.client_secret
 
             // 2. Confirmar el pago con Stripe
@@ -259,5 +329,24 @@
     font-size: 0.95rem;
     transition: all 0.3s ease;
     width: 100%;
+}
+
+.payment-option {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.payment-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.payment-option.border-primary {
+    border-width: 2px;
+    box-shadow: 0 0 0 3px rgba(32, 107, 196, 0.2);
+}
+
+.cursor-pointer {
+    cursor: pointer;
 }
 </style>

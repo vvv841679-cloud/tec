@@ -46,29 +46,63 @@ class PaymentController extends Controller
     /**
      * @throws ApiErrorException
      */
-    public function store(Booking $booking)
+    public function store(Request $request, Booking $booking)
     {
         if (!$booking->isPayable() || $booking->customer_id !== auth('customer')->id()) {
             abort(403);
         }
 
+        // Validar el porcentaje y monto
+        $request->validate([
+            'percentage' => 'nullable|numeric|min:30|max:100',
+            'amount' => 'nullable|numeric|min:0',
+        ]);
+
         Stripe::setApiKey(config('services.stripe.secret'));
 
-        $pendingPayment = $booking->payments()->where('status', \App\Enums\PaymentStatus::PENDING)->first();
-        $amountToPay = $pendingPayment ? $pendingPayment->amount : $booking->total_price;
+        // Calcular el monto a pagar según el porcentaje o monto especificado
+        $percentage = $request->input('percentage', 100);
+        $amountToPay = $request->input('amount', ($booking->total_price * $percentage) / 100);
+
+        // Validar que el monto no exceda el saldo pendiente
+        $paidAmount = $booking->payments()->where('status', PaymentStatus::PAID)->sum('amount');
+        $remainingAmount = $booking->total_price - $paidAmount;
+
+        if ($amountToPay > $remainingAmount) {
+            $amountToPay = $remainingAmount;
+        }
+
+        // Validar mínimo 30% del total o pagar el saldo restante completo
+        $minimumRequired = $booking->total_price * 0.30;
+        if ($paidAmount < $minimumRequired && $amountToPay < $minimumRequired) {
+            return response()->json([
+                'message' => 'El monto mínimo debe ser el 30% del total de la reserva.'
+            ], 422);
+        }
 
         $intent = PaymentIntent::create([
             'amount' => (int) ($amountToPay * 100),
-            'currency' => 'usd',
+            'currency' => 'bob',
             'metadata' => [
                 'user_id' => auth('customer')->id(),
                 'booking_id' => $booking->id,
+                'percentage' => $percentage,
             ],
-            'description' => 'Hotel Booking Payment',
+            'description' => 'Pago de Reserva de Hotel',
             'automatic_payment_methods' => ['enabled' => true],
         ]);
 
-        $booking->payments()->update(['reference' => $intent->id]);
+        // Crear o actualizar el registro de pago
+        $payment = $booking->payments()->updateOrCreate(
+            ['reference' => $intent->id],
+            [
+                'amount' => $amountToPay,
+                'type' => PaymentType::DEPOSIT,
+                'payment_method' => PaymentMethod::CREDIT_CARD,
+                'status' => PaymentStatus::PENDING,
+                'reference' => $intent->id,
+            ]
+        );
 
         return response()->json(['client_secret' => $intent->client_secret]);
     }

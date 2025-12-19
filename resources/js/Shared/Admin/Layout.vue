@@ -11,12 +11,16 @@
             <Footer/>
         </div>
     </div>
+
+    <!-- Configurador de Temas y Accesibilidad -->
+    <ThemeConfigurator />
 </template>
 
 <script setup lang="ts">
 import TopHeader from "./TopHeader.vue";
 import MainHeader from "./MainHeader.vue";
 import Footer from "./Footer.vue";
+import ThemeConfigurator from "../../Components/ThemeConfigurator.vue";
 import {useToast} from "vue-toastification";
 import {usePage} from "@inertiajs/vue3";
 import {watch} from "vue";

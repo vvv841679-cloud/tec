@@ -20,8 +20,14 @@ class BookingChargeController extends Controller
 
         $booking->charges()->create($data);
 
+        // Actualizar el precio total de la reserva
+        $this->updateBookingTotal($booking);
+
         return redirect()->back()
-            ->with('success', 'Servicio agregado exitosamente.');
+            ->with('flash', [
+                'type' => 'success',
+                'message' => 'Servicio agregado exitosamente. El total de la reserva se ha actualizado.'
+            ]);
     }
 
     public function destroy(Booking $booking, BookingCharge $charge): RedirectResponse
@@ -31,7 +37,10 @@ class BookingChargeController extends Controller
         // Solo permitir eliminar cargos de tipo SERVICE
         if ($charge->charge_type !== ChargeType::SERVICE) {
             return redirect()->back()
-                ->with('error', 'Solo se pueden eliminar cargos de tipo servicio.');
+                ->with('flash', [
+                    'type' => 'error',
+                    'message' => 'Solo se pueden eliminar cargos de tipo servicio.'
+                ]);
         }
 
         // Verificar que el cargo pertenece a la reserva
@@ -41,7 +50,40 @@ class BookingChargeController extends Controller
 
         $charge->delete();
 
+        // Actualizar el precio total de la reserva
+        $this->updateBookingTotal($booking);
+
         return redirect()->back()
-            ->with('success', 'Servicio eliminado exitosamente.');
+            ->with('flash', [
+                'type' => 'success',
+                'message' => 'Servicio eliminado exitosamente.'
+            ]);
+    }
+
+    /**
+     * Actualizar el precio total de la reserva basado en los cargos
+     */
+    private function updateBookingTotal(Booking $booking): void
+    {
+        $totalCharges = $booking->charges()->sum('amount');
+
+        $booking->update([
+            'total_price' => $totalCharges,
+        ]);
+
+        // Recalcular estado de pago
+        $paidAmount = $booking->deposit_amount;
+
+        if ($paidAmount <= 0) {
+            $paymentStatus = \App\Enums\BookingPayment::PENDING;
+        } elseif ($paidAmount >= $totalCharges) {
+            $paymentStatus = \App\Enums\BookingPayment::PAID;
+        } else {
+            $paymentStatus = \App\Enums\BookingPayment::PARTIALLY_PAID;
+        }
+
+        $booking->update([
+            'payment_status' => $paymentStatus,
+        ]);
     }
 }

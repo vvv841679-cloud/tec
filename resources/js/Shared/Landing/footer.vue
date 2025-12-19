@@ -14,46 +14,46 @@
                     </div>
 
                     <div class="col-lg-2 col-md-3 footer-links">
-                        <h4>Useful Links</h4>
+                        <h4>Enlaces Útiles</h4>
                         <ul>
-                            <li><a href="#">Home</a></li>
-                            <li><a href="#">About us</a></li>
-                            <li><a href="#">Services</a></li>
-                            <li><a href="#">Terms of service</a></li>
-                            <li><a href="#">Privacy policy</a></li>
+                            <li><a href="#">Inicio</a></li>
+                            <li><a href="#">Acerca de</a></li>
+                            <li><a href="#">Servicios</a></li>
+                            <li><a href="#">Términos de servicio</a></li>
+                            <li><a href="#">Política de privacidad</a></li>
                         </ul>
                     </div>
 
                     <div class="col-lg-2 col-md-3 footer-links">
-                        <h4>Our Services</h4>
+                        <h4>Nuestros Servicios</h4>
                         <ul>
-                            <li><a href="#">Web Design</a></li>
-                            <li><a href="#">Web Development</a></li>
-                            <li><a href="#">Product Management</a></li>
-                            <li><a href="#">Marketing</a></li>
-                            <li><a href="#">Graphic Design</a></li>
+                            <li><a href="#">Alojamiento</a></li>
+                            <li><a href="#">Restaurante</a></li>
+                            <li><a href="#">Spa y Bienestar</a></li>
+                            <li><a href="#">Eventos</a></li>
+                            <li><a href="#">Tours</a></li>
                         </ul>
                     </div>
 
                     <div class="col-lg-2 col-md-3 footer-links">
-                        <h4>Hic solutasetp</h4>
+                        <h4>Instalaciones</h4>
                         <ul>
-                            <li><a href="#">Molestiae accusamus iure</a></li>
-                            <li><a href="#">Excepturi dignissimos</a></li>
-                            <li><a href="#">Suscipit distinctio</a></li>
-                            <li><a href="#">Dilecta</a></li>
-                            <li><a href="#">Sit quas consectetur</a></li>
+                            <li><a href="#">Piscina</a></li>
+                            <li><a href="#">Gimnasio</a></li>
+                            <li><a href="#">WiFi Gratuito</a></li>
+                            <li><a href="#">Estacionamiento</a></li>
+                            <li><a href="#">Sala de Conferencias</a></li>
                         </ul>
                     </div>
 
                     <div class="col-lg-2 col-md-3 footer-links">
-                        <h4>Nobis illum</h4>
+                        <h4>Contáctanos</h4>
                         <ul>
-                            <li><a href="#">Ipsam</a></li>
-                            <li><a href="#">Laudantium dolorum</a></li>
-                            <li><a href="#">Dinera</a></li>
-                            <li><a href="#">Trodelas</a></li>
-                            <li><a href="#">Flexo</a></li>
+                            <li><a href="#">Reservaciones</a></li>
+                            <li><a href="#">Atención al cliente</a></li>
+                            <li><a href="#">Ubicación</a></li>
+                            <li><a href="#">FAQ</a></li>
+                            <li><a href="#">Comentarios</a></li>
                         </ul>
                     </div>
 
@@ -76,6 +76,10 @@
                         <!-- Licensing information: https://bootstrapmade.com/license/ -->
                         <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/herobiz-bootstrap-business-template/ -->
                         Designed by <a class="text-white" href="https://bootstrapmade.com/">BootstrapMade</a>
+                        <span class="mx-2 text-white-50">|</span>
+                        <Link :href="route('admin.loginForm')" class="text-white-50" style="font-size: 0.85rem; text-decoration: none;">
+                            <i class="bi bi-shield-lock me-1"></i>Panel de Administración
+                        </Link>
                     </div>
                 </div>
 
@@ -93,5 +97,5 @@
 </template>
 
 <script setup>
-
+import { Link } from '@inertiajs/vue3';
 </script>

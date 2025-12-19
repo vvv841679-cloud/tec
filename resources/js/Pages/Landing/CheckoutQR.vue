@@ -206,6 +206,7 @@ const calculatedAmount = ref(props.booking.total_price);
 const paymentOptions = [
     { value: 30, label: '30%' },
     { value: 50, label: '50%' },
+    { value: 70, label: '70%' },
     { value: 100, label: '100%' },
 ];
 

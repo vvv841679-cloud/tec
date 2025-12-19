@@ -191,26 +191,26 @@ class DatabaseSeeder extends Seeder
         $countries = Country::factory(50)->create();
 
         $bedTypes = [
-            'Single' => 1,
-            'Standard' => 2,
+            'Individual' => 1,
+            'Estándar' => 2,
             'King' => 2,
-            'Royal' => 2
+            'Real' => 2
         ];
 
         $bedTypes = array_map(fn($name, $quantity) => BedType::create(['name' => $name, 'capacity' => $quantity]),
             array_keys($bedTypes), $bedTypes);
 
         $facilities = [
-            'Private bathroom',
-            'Flat-screen TV',
-            'TerraceFree',
+            'Baño privado',
+            'TV de pantalla plana',
+            'Terraza',
             'Wifi',
-            'Free toiletries',
-            'Shower',
-            'Toilet',
-            'Hardwood or parquet floors',
-            'Towels',
-            'Shopping'
+            'Artículos de aseo gratuitos',
+            'Ducha',
+            'Inodoro',
+            'Suelos de madera o parquet',
+            'Toallas',
+            'Zona comercial'
         ];
 
         $facilities = array_map(fn($name) => Facility::create([
@@ -218,44 +218,44 @@ class DatabaseSeeder extends Seeder
         ]), $facilities);
 
         $roomTypes = [
-            'Single Room',
+            'Habitación Individual',
 
-            'Double Room',
+            'Habitación Doble',
 
-            'Twin Room',
+            'Habitación Twin',
 
-            'Triple Room',
+            'Habitación Triple',
 
-            'Quad Room',
+            'Habitación Cuádruple',
 
-            'Family Room',
+            'Habitación Familiar',
 
-            'King Room',
+            'Habitación King',
 
-            'Queen Room',
+            'Habitación Queen',
 
-            'Studio Room',
+            'Habitación Estudio',
 
-            'Deluxe Room',
+            'Habitación Deluxe',
 
-            'Superior Room',
+            'Habitación Superior',
 
-            'Executive Room',
+            'Habitación Ejecutiva',
 
-            'Junior Suite',
+            'Suite Junior',
 
             'Suite',
-            'Presidential Suite',
+            'Suite Presidencial',
 
-            'Connecting Room',
+            'Habitación Comunicada',
 
-            'Adjacent Room',
+            'Habitación Adyacente',
 
-            'Accessible Room',
+            'Habitación Accesible',
 
-            'Smoking Room',
+            'Habitación para Fumadores',
 
-            'Non-Smoking Room',
+            'Habitación para No Fumadores',
         ];
 
         $roomTypes = collect($roomTypes)->map(function ($name) {
@@ -273,11 +273,11 @@ class DatabaseSeeder extends Seeder
 
 
         $mealPlans = [
-            ['code' => 'RO', 'name' => 'Room Only', 'description' => 'No meals included', 'adult_price' => 0.00, 'child_price' => 0.00, 'infant_price' => 0.00],
-            ['code' => 'BB', 'name' => 'Bed & Breakfast', 'description' => 'Breakfast included', 'adult_price' => 10.00, 'child_price' => 8.00, 'infant_price' => 0.00],
-            ['code' => 'HB', 'name' => 'Half Board', 'description' => 'Breakfast + Dinner', 'adult_price' => 25.00, 'child_price' => 20, 'infant_price' => 0.00],
-            ['code' => 'FB', 'name' => 'Full Board', 'description' => 'Breakfast + Lunch + Dinner', 'adult_price' => 40.00, 'child_price' => 30, 'infant_price' => 5.00],
-            ['code' => 'AI', 'name' => 'All Inclusive', 'description' => 'All meals + drinks', 'adult_price' => 65.00, 'child_price' => 50.00, 'infant_price' => 10.00]
+            ['code' => 'RO', 'name' => 'Solo Habitación', 'description' => 'Sin comidas incluidas', 'adult_price' => 0.00, 'child_price' => 0.00, 'infant_price' => 0.00],
+            ['code' => 'BB', 'name' => 'Cama y Desayuno', 'description' => 'Desayuno incluido', 'adult_price' => 10.00, 'child_price' => 8.00, 'infant_price' => 0.00],
+            ['code' => 'HB', 'name' => 'Media Pensión', 'description' => 'Desayuno + Cena', 'adult_price' => 25.00, 'child_price' => 20, 'infant_price' => 0.00],
+            ['code' => 'FB', 'name' => 'Pensión Completa', 'description' => 'Desayuno + Almuerzo + Cena', 'adult_price' => 40.00, 'child_price' => 30, 'infant_price' => 5.00],
+            ['code' => 'AI', 'name' => 'Todo Incluido', 'description' => 'Todas las comidas + bebidas', 'adult_price' => 65.00, 'child_price' => 50.00, 'infant_price' => 10.00]
         ];
 
         foreach ($mealPlans as $mealPlan) {
@@ -289,25 +289,25 @@ class DatabaseSeeder extends Seeder
                 'min_days_before' => 0,
                 'max_days_before' => 1,
                 'penalty_percent' => 100,
-                'description' => 'No refund for cancellations made within 1 day before check-in',
+                'description' => 'Sin reembolso para cancelaciones realizadas dentro de 1 día antes del check-in',
             ],
             [
                 'min_days_before' => 2,
                 'max_days_before' => 3,
                 'penalty_percent' => 50,
-                'description' => '50% refund for cancellations made 2–3 days before check-in',
+                'description' => '50% de reembolso para cancelaciones realizadas 2-3 días antes del check-in',
             ],
             [
                 'min_days_before' => 4,
                 'max_days_before' => 7,
                 'penalty_percent' => 25,
-                'description' => '25% cancellation fee for cancellations 4–7 days before check-in',
+                'description' => '25% de penalización para cancelaciones 4-7 días antes del check-in',
             ],
             [
                 'min_days_before' => 8,
                 'max_days_before' => 999,
                 'penalty_percent' => 0,
-                'description' => 'Free cancellation for bookings cancelled 8 or more days before check-in',
+                'description' => 'Cancelación gratuita para reservas canceladas 8 o más días antes del check-in',
             ],
         ];
 

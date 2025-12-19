@@ -58,10 +58,10 @@ class QRPaymentController extends Controller
         $percentage = $request->input('percentage', 100);
         $requestedAmount = $request->input('amount');
 
-        // Validar que el porcentaje esté entre 1 y 100
-        if ($percentage < 1 || $percentage > 100) {
+        // Validar que el porcentaje esté entre 30 y 100
+        if ($percentage < 30 || $percentage > 100) {
             return response()->json([
-                'error' => 'El porcentaje debe estar entre 1% y 100%',
+                'error' => 'El porcentaje debe estar entre 30% y 100% (mínimo requerido: 30%)',
                 'success' => false
             ], 400);
         }
@@ -72,12 +72,24 @@ class QRPaymentController extends Controller
         // Usar el monto solicitado si está presente, o el calculado
         $finalAmount = $requestedAmount ?? $paymentAmount;
 
-        // Validar que el monto no exceda el total
-        if ($finalAmount > $booking->total_price) {
+        // Validar que el monto no exceda el saldo pendiente
+        $paidAmount = $booking->payments()->where('status', PaymentStatus::PAID)->sum('amount');
+        $remainingAmount = $booking->total_price - $paidAmount;
+
+        if ($finalAmount > $remainingAmount) {
             return response()->json([
-                'error' => 'El monto no puede exceder el total de la reserva',
+                'error' => 'El monto no puede exceder el saldo pendiente de la reserva',
                 'success' => false
             ], 400);
+        }
+
+        // Validar mínimo 30% del total o pagar el saldo restante completo
+        $minimumRequired = $booking->total_price * 0.30;
+        if ($paidAmount < $minimumRequired && $finalAmount < $minimumRequired) {
+            return response()->json([
+                'error' => 'El monto mínimo debe ser el 30% del total de la reserva.',
+                'success' => false
+            ], 422);
         }
 
         Log::info('💰 Monto a pagar calculado', [
@@ -117,7 +129,7 @@ class QRPaymentController extends Controller
             ]
         ];
 
-        // Datos para MasterQR con MONTO DE PRUEBA
+        // Datos para PagoFacil con MONTO DE PRUEBA
         $paymentData = [
             'client_name' => $customer->first_name . ' ' . $customer->last_name,
             'document_type' => 1, // 1 = CI (Cédula de Identidad)
@@ -130,11 +142,22 @@ class QRPaymentController extends Controller
             'order_detail' => $orderDetail,
         ];
 
+        // IMPORTANTE: Verificar que el teléfono esté disponible para que PagoFacil pueda notificar si hay problemas
+        if (!$customer->phone_number || $customer->phone_number === '00000000') {
+            Log::warning('⚠️ IMPORTANTE: Cliente sin número de teléfono válido', [
+                'customer_id' => $customer->id,
+                'phone_number' => $paymentData['phone_number'],
+                'advertencia' => 'PagoFacil usa el teléfono para notificar si hay problemas con el callback',
+            ]);
+        }
+
         Log::info('📝 Datos de pago preparados', [
             'payment_number' => $paymentNumber,
             'amount' => $paymentData['amount'],
             'percentage' => $percentage,
             'client_name' => $paymentData['client_name'],
+            'phone_number' => $paymentData['phone_number'],
+            'email' => $paymentData['email'],
         ]);
 
         // Generar QR
@@ -214,204 +237,278 @@ class QRPaymentController extends Controller
     }
 
     /**
-     * Webhook que recibe las notificaciones de MasterQR cuando se completa un pago
+     * Webhook que recibe las notificaciones de PagoFacil cuando se completa un pago
      *
-     * URL del Webhook: https://tu-dominio.com/qr/callback
+     * URL del Webhook: https://www.tecnoweb.org.bo/inf513/grupo01sc/tecnoweb/public/qr/callback
      *
-     * Esta URL debe ser configurada en el panel de MasterQR para recibir notificaciones
+     * Esta URL debe ser configurada en el panel de PagoFacil para recibir notificaciones
      * de pagos completados, fallidos o cancelados.
      *
      * IMPORTANTE: Esta ruta es pública (sin middleware de autenticación) para que
-     * MasterQR pueda enviar notificaciones.
+     * PagoFacil pueda enviar notificaciones.
      */
     public function callback(Request $request)
     {
-        Log::info('🔔 MasterQR Callback recibido', [
+        Log::info('🔔 PagoFacil Callback recibido', [
             'timestamp' => now()->toDateTimeString(),
             'ip' => $request->ip(),
-            'headers' => $request->headers->all(),
             'payload' => $request->all(),
         ]);
 
-        // Validar la firma del webhook (implementar según documentación de MasterQR)
-        // IMPORTANTE: Descomentar esto en producción para mayor seguridad
-        // $isValid = $this->masterQRService->validateWebhookSignature(
-        //     $request->all(),
-        //     $request->header('X-Signature')
-        // );
-        //
-        // if (!$isValid) {
-        //     Log::warning('❌ Firma de webhook inválida de MasterQR', [
-        //         'ip' => $request->ip(),
-        //         'signature' => $request->header('X-Signature'),
-        //     ]);
-        //     return response()->json(['error' => 'Invalid signature'], 403);
-        // }
+        try {
+            // Obtener los parámetros del request según formato de PagoFacil
+            $pedidoId = $request->input('PedidoID');
+            $fecha = $request->input('Fecha');
+            $hora = $request->input('Hora');
+            $estado = $request->input('Estado');
+            $metodoPago = $request->input('MetodoPago');
 
-        // Obtener el número de pago (probar diferentes campos que MasterQR puede enviar)
-        $paymentNumber = $request->input('paymentNumber')
-                      ?? $request->input('payment_number')
-                      ?? $request->input('PaymentNumber')
-                      ?? $request->input('externalId');
-
-        if (!$paymentNumber) {
-            Log::error('❌ Número de pago no encontrado en callback', [
-                'all_inputs' => $request->all(),
-                'ip' => $request->ip(),
+            Log::info('📋 Parámetros recibidos de PagoFacil', [
+                'PedidoID' => $pedidoId,
+                'Fecha' => $fecha,
+                'Hora' => $hora,
+                'Estado' => $estado,
+                'MetodoPago' => $metodoPago,
             ]);
-            return response()->json(['error' => 'Payment number required'], 400);
-        }
 
-        Log::info('🔍 Buscando pago', ['payment_number' => $paymentNumber]);
+            // Buscar el pago por ID (PedidoID corresponde al ID del Payment)
+            $payment = Payment::find($pedidoId);
 
-        // Buscar el pago por payment_number
-        $payment = Payment::where('payment_number', $paymentNumber)->first();
-
-        if (!$payment) {
-            Log::error('❌ Pago no encontrado en BD', [
-                'payment_number' => $paymentNumber,
-                'callback_data' => $request->all(),
-            ]);
-            return response()->json(['error' => 'Payment not found'], 404);
-        }
-
-        Log::info('✅ Pago encontrado', [
-            'payment_id' => $payment->id,
-            'booking_id' => $payment->booking_id,
-            'current_status' => $payment->status->value,
-        ]);
-
-        // Verificar el estado del pago desde MasterQR (probar diferentes campos)
-        $transactionStatus = $request->input('status')
-                          ?? $request->input('transactionStatus')
-                          ?? $request->input('Status')
-                          ?? $request->input('paymentStatus');
-
-        Log::info('📋 Estado de transacción recibido', [
-            'status' => $transactionStatus,
-            'payment_id' => $payment->id,
-        ]);
-
-        // Estados posibles de MasterQR: 'completed', 'success', 'paid', etc.
-        // Ajustar según la documentación real de MasterQR
-        if (in_array(strtolower($transactionStatus), ['completed', 'success', 'paid', 'approved'])) {
-            Log::info('✅ Procesando pago exitoso');
-
-            try {
-                DB::transaction(function () use ($payment, $request) {
-                    $booking = $payment->booking;
-
-                    // Verificar que el pago no haya sido procesado anteriormente
-                    if ($payment->status === PaymentStatus::PAID) {
-                        Log::warning('⚠️ Pago ya procesado anteriormente', [
-                            'payment_id' => $payment->id,
-                            'paid_at' => $payment->paid_at,
-                        ]);
-                        return;
-                    }
-
-                    // Actualizar el pago con información del callback
-                    $payment->update([
-                        'status' => PaymentStatus::PAID,
-                        'paid_at' => now(),
-                        'reference' => $request->input('transactionId')
-                                    ?? $request->input('transaction_id')
-                                    ?? $request->input('TransactionId'),
-                        'qr_callback_data' => $request->all(), // Guardar todo el callback para auditoría
-                    ]);
-
-                    Log::info('💾 Pago actualizado a PAID', [
-                        'payment_id' => $payment->id,
-                        'reference' => $payment->reference,
-                    ]);
-
-                    // Actualizar la reserva
-                    $booking->update([
-                        'status' => BookingStatus::RESERVED,
-                        'payment_status' => BookingPayment::PAID,
-                    ]);
-
-                    Log::info('📅 Reserva actualizada', [
-                        'booking_id' => $booking->id,
-                        'status' => $booking->status->value,
-                    ]);
-
-                    // Crear estado de reserva
-                    $booking->statuses()->create([
-                        'status' => BookingStatus::RESERVED,
-                    ]);
-
-                    // Enviar email de confirmación
-                    try {
-                        Mail::to($booking->customer->email)->send(new BookingConfirmed($booking));
-                        Log::info('📧 Email de confirmación enviado', [
-                            'customer_email' => $booking->customer->email,
-                        ]);
-                    } catch (\Exception $e) {
-                        Log::error('❌ Error al enviar email de confirmación', [
-                            'error' => $e->getMessage(),
-                            'customer_email' => $booking->customer->email,
-                        ]);
-                        // No fallar la transacción si el email falla
-                    }
-
-                    Log::info('✅ Pago confirmado exitosamente vía QR', [
-                        'payment_id' => $payment->id,
-                        'booking_id' => $booking->id,
-                        'amount' => $payment->amount,
-                        'reference' => $payment->reference,
-                    ]);
-                });
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Payment processed successfully'
-                ]);
-
-            } catch (\Exception $e) {
-                Log::error('❌ Error al procesar pago exitoso', [
-                    'payment_id' => $payment->id,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
+            if (!$payment) {
+                Log::error('❌ Pago no encontrado en BD', [
+                    'PedidoID' => $pedidoId,
+                    'callback_data' => $request->all(),
                 ]);
 
                 return response()->json([
-                    'error' => 'Error processing payment',
-                    'message' => $e->getMessage()
-                ], 500);
+                    'error' => 1,
+                    'status' => 0,
+                    'message' => 'Transacción no encontrada',
+                    'messageMostrar' => 0,
+                    'messageSistema' => '',
+                    'values' => false
+                ], 200);
             }
-        }
 
-        // Si el pago falló, fue rechazado o cancelado
-        if (in_array(strtolower($transactionStatus), ['failed', 'rejected', 'cancelled', 'error', 'denied'])) {
-            Log::warning('⚠️ Pago fallido/rechazado', [
+            Log::info('✅ Pago encontrado', [
                 'payment_id' => $payment->id,
-                'status' => $transactionStatus,
-                'callback_data' => $request->all(),
+                'booking_id' => $payment->booking_id,
+                'current_status' => $payment->status->value,
             ]);
 
-            $payment->update([
-                'status' => PaymentStatus::FAILED,
-                'qr_callback_data' => $request->all(), // Guardar datos para análisis
+            // Verifica el estado del pago basado en el paquete de PagoFacil
+            // Estado 1: En proceso/pendiente
+            // Estado 2: Pagado
+            // Estado 4: Anulado (no se recibió dinero o el QR caducó)
+            // Estado 5: Revisión (si no pudieron notificar a través de la URL callback)
+
+            if ($estado == 2) {
+                // ESTADO 2: Pago exitoso
+                Log::info('✅ Procesando pago exitoso - Estado 2 (Pagado)');
+
+                try {
+                    DB::transaction(function () use ($payment, $request, $fecha, $hora, $metodoPago) {
+                        $booking = $payment->booking;
+
+                        // Verificar que el pago no haya sido procesado anteriormente
+                        if ($payment->status === PaymentStatus::PAID) {
+                            Log::warning('⚠️ Pago ya procesado anteriormente', [
+                                'payment_id' => $payment->id,
+                                'paid_at' => $payment->paid_at,
+                            ]);
+                            return;
+                        }
+
+                        // Actualizar el pago con información del callback de PagoFacil
+                        $payment->update([
+                            'status' => PaymentStatus::PAID,
+                            'paid_at' => now(),
+                            'reference' => $metodoPago,
+                            'qr_callback_data' => $request->all(), // Guardar todo el callback para auditoría
+                        ]);
+
+                        Log::info('💾 Pago actualizado a PAID', [
+                            'payment_id' => $payment->id,
+                            'fecha' => $fecha,
+                            'hora' => $hora,
+                            'metodo_pago' => $metodoPago,
+                        ]);
+
+                        // Calcular total pagado incluyendo el que acabamos de actualizar
+                        $totalPaid = $booking->payments()->where('status', PaymentStatus::PAID)->sum('amount');
+                        $paymentStatus = $totalPaid >= $booking->total_price
+                            ? BookingPayment::PAID
+                            : BookingPayment::PARTIALLY_PAID;
+
+                        Log::info('💰 Calculando estado de pago', [
+                            'total_price' => $booking->total_price,
+                            'total_paid' => $totalPaid,
+                            'payment_status' => $paymentStatus->value,
+                        ]);
+
+                        // Actualizar la reserva
+                        $booking->update([
+                            'status' => BookingStatus::RESERVED,
+                            'payment_status' => $paymentStatus,
+                        ]);
+
+                        Log::info('📅 Reserva actualizada', [
+                            'booking_id' => $booking->id,
+                            'status' => $booking->status->value,
+                            'payment_status' => $booking->payment_status->value,
+                        ]);
+
+                        // Crear estado de reserva
+                        $booking->statuses()->create([
+                            'status' => BookingStatus::RESERVED,
+                        ]);
+
+                        // Enviar email de confirmación
+                        try {
+                            Mail::to($booking->customer->email)->send(new BookingConfirmed($booking));
+                            Log::info('📧 Email de confirmación enviado', [
+                                'customer_email' => $booking->customer->email,
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('❌ Error al enviar email de confirmación', [
+                                'error' => $e->getMessage(),
+                                'customer_email' => $booking->customer->email,
+                            ]);
+                            // No fallar la transacción si el email falla
+                        }
+
+                        Log::info('✅ Pago confirmado exitosamente vía PagoFacil', [
+                            'payment_id' => $payment->id,
+                            'booking_id' => $booking->id,
+                            'amount' => $payment->amount,
+                            'metodo_pago' => $metodoPago,
+                        ]);
+                    });
+
+                    // Devuelve un paquete de éxito según formato esperado por PagoFacil
+                    return response()->json([
+                        'error' => 0,
+                        'status' => 1,
+                        'message' => 'Pago realizado correctamente',
+                        'messageMostrar' => 0,
+                        'messageSistema' => '',
+                        'values' => true
+                    ], 200);
+
+                } catch (\Exception $e) {
+                    Log::error('❌ Error al procesar pago exitoso', [
+                        'payment_id' => $payment->id,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+
+                    return response()->json([
+                        'error' => 1,
+                        'status' => 0,
+                        'message' => 'Error al procesar el pago',
+                        'messageMostrar' => 0,
+                        'messageSistema' => $e->getMessage(),
+                        'values' => false
+                    ], 200);
+                }
+            } elseif ($estado == 1) {
+                // ESTADO 1: En proceso/pendiente
+                Log::info('⏳ Pago en proceso - Estado 1 (Pendiente)', [
+                    'payment_id' => $payment->id,
+                    'callback_data' => $request->all(),
+                ]);
+
+                // Guardar los datos del callback pero mantener el estado como pendiente
+                $payment->update([
+                    'qr_callback_data' => $request->all(),
+                ]);
+
+                return response()->json([
+                    'error' => 0,
+                    'status' => 1,
+                    'message' => 'Pago en proceso',
+                    'messageMostrar' => 0,
+                    'messageSistema' => '',
+                    'values' => true
+                ], 200);
+
+            } elseif ($estado == 4) {
+                // ESTADO 4: Anulado (no se recibió dinero o el QR caducó)
+                Log::warning('❌ Pago anulado - Estado 4 (Anulado/QR Caducado)', [
+                    'payment_id' => $payment->id,
+                    'callback_data' => $request->all(),
+                ]);
+
+                $payment->update([
+                    'status' => PaymentStatus::FAILED,
+                    'qr_callback_data' => $request->all(),
+                ]);
+
+                return response()->json([
+                    'error' => 0,
+                    'status' => 1,
+                    'message' => 'Pago anulado',
+                    'messageMostrar' => 0,
+                    'messageSistema' => '',
+                    'values' => true
+                ], 200);
+
+            } elseif ($estado == 5) {
+                // ESTADO 5: Revisión (si no pudieron notificar a través de la URL callback)
+                Log::warning('⚠️ Pago en revisión - Estado 5 (Error en notificación callback)', [
+                    'payment_id' => $payment->id,
+                    'callback_data' => $request->all(),
+                    'advertencia' => 'PagoFacil tuvo problemas notificando el callback. Revisar logs y contactar soporte.',
+                ]);
+
+                $payment->update([
+                    'qr_callback_data' => $request->all(),
+                ]);
+
+                return response()->json([
+                    'error' => 0,
+                    'status' => 1,
+                    'message' => 'Pago en revisión',
+                    'messageMostrar' => 0,
+                    'messageSistema' => '',
+                    'values' => true
+                ], 200);
+
+            } else {
+                // Estado desconocido
+                Log::warning('❓ Estado desconocido recibido', [
+                    'payment_id' => $payment->id,
+                    'estado' => $estado,
+                    'callback_data' => $request->all(),
+                ]);
+
+                return response()->json([
+                    'error' => 0,
+                    'status' => 0,
+                    'message' => 'Estado desconocido: ' . $estado,
+                    'messageMostrar' => 0,
+                    'messageSistema' => '',
+                    'values' => false
+                ], 200);
+            }
+
+        } catch (\Exception $e) {
+            // Captura cualquier excepción y devuelve un error
+            Log::error('❌ Error en el método callback de PagoFacil', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all(),
             ]);
 
             return response()->json([
-                'success' => true,
-                'message' => 'Payment marked as failed'
-            ]);
+                'error' => 1,
+                'status' => 0,
+                'message' => 'Ocurrió un error al procesar la transacción',
+                'messageMostrar' => 0,
+                'messageSistema' => $e->getMessage(),
+                'values' => false
+            ], 200);
         }
-
-        // Estado desconocido o pendiente
-        Log::info('ℹ️ Estado de pago no reconocido o pendiente', [
-            'payment_id' => $payment->id,
-            'status' => $transactionStatus,
-            'callback_data' => $request->all(),
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Callback received, status: ' . $transactionStatus
-        ]);
     }
 
     /**

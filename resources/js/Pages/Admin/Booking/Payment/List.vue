@@ -43,6 +43,7 @@
                         </th>
                         <th>Método de pago</th>
                         <th>Estado</th>
+                        <th>QR</th>
                         <th>Fecha de pago</th>
                         <th>Fecha de Creación</th>
                         <th></th>
@@ -70,6 +71,16 @@
                                 {{ displayStatus(payment.status).label }}
                             </span>
                             </td>
+                            <td>
+                                <button
+                                    v-if="payment.qr_image_url"
+                                    @click="showQR(payment)"
+                                    class="btn btn-sm btn-success"
+                                    title="Ver código QR">
+                                    <i class="bi bi-qr-code"></i> Ver QR
+                                </button>
+                                <span v-else class="text-muted">-</span>
+                            </td>
                             <td>{{ payment.paid_at ?? '-' }}</td>
                             <td>{{ payment.created_at }}</td>
                             <td class="text-end">
@@ -90,7 +101,7 @@
                             </td>
                         </tr>
                         <tr v-else>
-                            <td colspan="8" class="text-center">No existen registros de pagos.</td>
+                            <td colspan="9" class="text-center">No existen registros de pagos.</td>
                         </tr>
                         <tr class="border-top-wide">
                             <td colspan="4" class="text-center">Precio Total: {{ money_format(booking.total_price) }}</td>
@@ -103,8 +114,37 @@
             </div>
         </div>
     </div>
-    <Create v-if="openModal && !editingPayment" :booking_id="booking.id" v-bind="{selectMethods, selectStatuses, defaultStatus}"/>
+    <Create v-if="openModal && !editingPayment" :booking_id="booking.id" :booking="booking" v-bind="{selectMethods, selectStatuses, defaultStatus}"/>
     <Update v-if="openModal && editingPayment" :payment="editingPayment" v-bind="{selectMethods, selectStatuses}"/>
+
+    <!-- Modal para mostrar QR -->
+    <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true" ref="qrModalRef">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrModalLabel">Código QR de Pago</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center" v-if="selectedPayment">
+                    <div class="alert alert-info mb-3">
+                        <div><strong>Monto:</strong> {{ money_format(selectedPayment.amount) }}</div>
+                        <div><strong>Estado:</strong> <span class="badge" :class="displayStatus(selectedPayment.status).bgClass">{{ displayStatus(selectedPayment.status).label }}</span></div>
+                        <div v-if="selectedPayment.payment_number"><strong>Nº Pago:</strong> {{ selectedPayment.payment_number }}</div>
+                    </div>
+                    <div class="qr-container">
+                        <img
+                            :src="selectedPayment.qr_image_url.startsWith('data:') ? selectedPayment.qr_image_url : `data:image/png;base64,${selectedPayment.qr_image_url}`"
+                            alt="Código QR"
+                            class="img-fluid"
+                            style="max-width: 400px; border: 2px solid #ccc; padding: 20px; border-radius: 8px;">
+                    </div>
+                    <div class="mt-3">
+                        <p class="text-muted mb-0">Muestra este código QR al cliente para que lo escanee con su billetera digital.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -142,6 +182,8 @@ const {
 
 let editingPayment = ref(null);
 let openModal = ref(false);
+let selectedPayment = ref(null);
+let qrModalRef = ref(null);
 
 provide("closeModal", () => {
     openModal.value = false
@@ -151,6 +193,13 @@ provide("closeModal", () => {
 const openEditModal = (payment) => {
     editingPayment.value = payment;
     openModal.value = true
+}
+
+const showQR = (payment) => {
+    selectedPayment.value = payment;
+    // Usar Bootstrap 5 Modal API
+    const modal = new bootstrap.Modal(document.getElementById('qrModal'));
+    modal.show();
 }
 
 </script>

@@ -23,6 +23,7 @@ class Payment extends Model
         'qr_transaction_id',
         'payment_number',
         'qr_response',
+        'qr_callback_data',
     ];
 
 
@@ -33,6 +34,7 @@ class Payment extends Model
         'payment_method' => PaymentMethod::class,
         'status' => PaymentStatus::class,
         'qr_response' => 'array',
+        'qr_callback_data' => 'array',
     ];
 
     public function booking(): BelongsTo
